@@ -9,7 +9,8 @@ import br.com.rodrigogurgel.catalog.domain.vo.Id
 import br.com.rodrigogurgel.catalog.domain.vo.Name
 import br.com.rodrigogurgel.catalog.domain.vo.Price
 import br.com.rodrigogurgel.catalog.domain.vo.Quantity
-import br.com.rodrigogurgel.catalog.domain.vo.Status
+import br.com.rodrigogurgel.catalog.domain.vo.Status.AVAILABLE
+import br.com.rodrigogurgel.catalog.domain.vo.Status.UNAVAILABLE
 import br.com.rodrigogurgel.catalog.fixture.mock.mockCustomization
 import br.com.rodrigogurgel.catalog.fixture.mock.mockCustomizationWith
 import br.com.rodrigogurgel.catalog.fixture.mock.mockOffer
@@ -30,12 +31,11 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldHaveSameHashCodeAs
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
-import java.util.UUID
 
 class OfferTest {
     @Test
     fun `Should successfully instantiate an offer when price is greater than 0`() {
-        val id = Id(UUID.randomUUID())
+        val id = Id()
         val name = Name(randomString(30))
         val product = mockProduct()
         val customizations =
@@ -52,7 +52,7 @@ class OfferTest {
                 },
             )
         val price = Price(BigDecimal.TEN)
-        val status = Status.AVAILABLE
+        val status = AVAILABLE
 
         val offer =
             Offer(
@@ -76,10 +76,10 @@ class OfferTest {
 
     @Test
     fun `Should successfully instantiate an offer when price is greater than 0 without product`() {
-        val id = Id(UUID.randomUUID())
+        val id = Id()
         val name = Name(randomString(30))
         val price = Price(BigDecimal.TEN)
-        val status = Status.AVAILABLE
+        val status = AVAILABLE
 
         val offer =
             Offer(
@@ -106,11 +106,11 @@ class OfferTest {
         val name = Name(randomString(30))
         val product = mockProduct()
         val price = Price(20.toBigDecimal())
-        val status = Status.AVAILABLE
+        val status = AVAILABLE
 
         val offer =
             Offer(
-                Id(UUID.randomUUID()),
+                Id(),
                 name,
                 product,
                 price,
@@ -130,21 +130,21 @@ class OfferTest {
         offer.name = updatedName
         offer.product = updatedProduct
         offer.price = updatedPrice
-        offer.status = Status.UNAVAILABLE
+        offer.status = UNAVAILABLE
 
         offer.name shouldBe updatedName
         offer.product shouldBe updatedProduct
         offer.price shouldBe updatedPrice
-        offer.status shouldBe Status.UNAVAILABLE
+        offer.status shouldBe UNAVAILABLE
     }
 
     @Test
     fun `Should fail to instantiate an offer when price is equal to 0`() {
-        val id = Id(UUID.randomUUID())
+        val id = Id()
         val name = Name(randomString(30))
         val product = mockProduct()
 
-        val status = Status.AVAILABLE
+        val status = AVAILABLE
 
         shouldThrow<OfferPriceZeroException> {
             Offer(
@@ -627,7 +627,7 @@ class OfferTest {
                     )
             }
         val price = Price(BigDecimal.TEN)
-        val status = Status.AVAILABLE
+        val status = AVAILABLE
 
         val offer = mockOffer()
 
@@ -654,9 +654,9 @@ class OfferTest {
 
     @Test
     fun `Should successfully run validate`() {
-        val optionId = Id(UUID.randomUUID())
-        val customizationId = Id(UUID.randomUUID())
-        val offerId = Id(UUID.randomUUID())
+        val optionId = Id()
+        val customizationId = Id()
+        val offerId = Id()
         val option = mockOptionWith { id = optionId }
         val customization =
             mockCustomizationWith {
@@ -674,9 +674,9 @@ class OfferTest {
 
     @Test
     fun `Should throw DuplicatedCustomizationException when calling validateDuplications`() {
-        val optionId = Id(UUID.randomUUID())
-        val customizationId = Id(UUID.randomUUID())
-        val offerId = Id(UUID.randomUUID())
+        val optionId = Id()
+        val customizationId = Id()
+        val offerId = Id()
         val customizationSub =
             mockCustomizationWith {
                 id = customizationId
@@ -709,8 +709,8 @@ class OfferTest {
 
     @Test
     fun `Should throw DuplicatedOptionException when calling validate`() {
-        val optionId = Id(UUID.randomUUID())
-        val offerId = Id(UUID.randomUUID())
+        val optionId = Id()
+        val offerId = Id()
 
         val option1 =
             mockOptionWith {

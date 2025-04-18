@@ -10,12 +10,11 @@ import br.com.rodrigogurgel.catalog.fixture.utils.randomString
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
-import java.util.UUID
 
 class ProductTest {
     @Test
     fun `Should instantiate Product with success`() {
-        val id = Id(UUID.randomUUID())
+        val id = Id()
         val name = Name(randomString(30))
         val description = Description(randomString(30))
         val medias = listOf(Media("https://www.${randomString(10)}.com", type = IMAGE))
@@ -40,7 +39,7 @@ class ProductTest {
 
     @Test
     fun `Should instantiate Product with success with optional values null`() {
-        val id = Id(UUID.randomUUID())
+        val id = Id()
         val name = Name(randomString(30))
         val description = null
         val medias = emptyList<Media>()

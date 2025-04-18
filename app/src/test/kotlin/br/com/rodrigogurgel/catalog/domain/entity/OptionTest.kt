@@ -6,7 +6,8 @@ import br.com.rodrigogurgel.catalog.domain.vo.Id
 import br.com.rodrigogurgel.catalog.domain.vo.Name
 import br.com.rodrigogurgel.catalog.domain.vo.Price
 import br.com.rodrigogurgel.catalog.domain.vo.Quantity
-import br.com.rodrigogurgel.catalog.domain.vo.Status
+import br.com.rodrigogurgel.catalog.domain.vo.Status.AVAILABLE
+import br.com.rodrigogurgel.catalog.domain.vo.Status.UNAVAILABLE
 import br.com.rodrigogurgel.catalog.fixture.mock.mockCustomization
 import br.com.rodrigogurgel.catalog.fixture.mock.mockCustomizationWith
 import br.com.rodrigogurgel.catalog.fixture.mock.mockOption
@@ -21,17 +22,16 @@ import io.kotest.matchers.equals.shouldNotBeEqual
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
-import java.util.UUID
 
 class OptionTest {
     @Test
     fun `Minimal price should be equal to 0 when Option price is 0 and customizations is empty`() {
-        val id = Id(UUID.randomUUID())
+        val id = Id()
         val name = Name(randomString(30))
         val product = mockProduct()
         val price = Price.ZERO
         val quantity = Quantity(0, 1)
-        val status = Status.AVAILABLE
+        val status = AVAILABLE
         val customizations = mutableListOf<Customization>()
 
         val option =
@@ -60,12 +60,12 @@ class OptionTest {
 
     @Test
     fun `Should update mutable values with success`() {
-        val id = Id(UUID.randomUUID())
+        val id = Id()
         val name = Name(randomString(30))
         val product = mockProduct()
         val price = Price.ZERO
         val quantity = Quantity(0, 1)
-        val status = Status.AVAILABLE
+        val status = AVAILABLE
         val customizations = mutableListOf<Customization>()
         val option =
             Option(
@@ -94,12 +94,12 @@ class OptionTest {
 
         option.product = updatedProduct
         option.price = updatedPrice
-        option.status = Status.UNAVAILABLE
+        option.status = UNAVAILABLE
         option.quantity = updatedQuantity
 
         option.product shouldBe updatedProduct
         option.price shouldBe updatedPrice
-        option.status shouldBe Status.UNAVAILABLE
+        option.status shouldBe UNAVAILABLE
         option.quantity shouldBe updatedQuantity
     }
 
@@ -107,11 +107,11 @@ class OptionTest {
     fun `Minimal price should be equal to 10 when Option price is 10 and customizations is empty and minPermitted is 1`() {
         val option =
             Option(
-                Id(UUID.randomUUID()),
+                Id(),
                 Name(randomString(30)),
                 mockProduct(),
                 Quantity(1, 1),
-                Status.AVAILABLE,
+                AVAILABLE,
                 Price(BigDecimal.TEN),
                 mutableListOf(),
                 emptyList(),
@@ -126,11 +126,11 @@ class OptionTest {
     fun `Minimal price should be equal to 10 when Option price is 10 and customizations is empty and minPermitted is 0`() {
         val option =
             Option(
-                Id(UUID.randomUUID()),
+                Id(),
                 Name(randomString(30)),
                 mockProduct(),
                 Quantity(0, 1),
-                Status.AVAILABLE,
+                AVAILABLE,
                 Price(BigDecimal.TEN),
                 mutableListOf(),
                 emptyList(),
@@ -145,11 +145,11 @@ class OptionTest {
     fun `Minimal price should be equal to 20 when Option price is 10 and customizations is empty and minPermitted is 2`() {
         val option =
             Option(
-                Id(UUID.randomUUID()),
+                Id(),
                 Name(randomString(30)),
                 mockProduct(),
                 Quantity(2, 2),
-                Status.AVAILABLE,
+                AVAILABLE,
                 Price(BigDecimal.TEN),
                 mutableListOf(),
                 emptyList(),
@@ -262,7 +262,7 @@ class OptionTest {
                     name,
                     product,
                     quantity,
-                    Status.UNAVAILABLE,
+                    UNAVAILABLE,
                     Price("20".toBigDecimal()),
                     mutableListOf(),
                     emptyList(),

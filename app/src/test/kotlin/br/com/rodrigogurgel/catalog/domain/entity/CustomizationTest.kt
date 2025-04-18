@@ -9,7 +9,8 @@ import br.com.rodrigogurgel.catalog.domain.vo.Id
 import br.com.rodrigogurgel.catalog.domain.vo.Name
 import br.com.rodrigogurgel.catalog.domain.vo.Price
 import br.com.rodrigogurgel.catalog.domain.vo.Quantity
-import br.com.rodrigogurgel.catalog.domain.vo.Status
+import br.com.rodrigogurgel.catalog.domain.vo.Status.AVAILABLE
+import br.com.rodrigogurgel.catalog.domain.vo.Status.UNAVAILABLE
 import br.com.rodrigogurgel.catalog.fixture.mock.mockCustomization
 import br.com.rodrigogurgel.catalog.fixture.mock.mockCustomizationWith
 import br.com.rodrigogurgel.catalog.fixture.mock.mockOption
@@ -26,16 +27,15 @@ import io.kotest.matchers.types.shouldHaveSameHashCodeAs
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.math.BigDecimal
-import java.util.UUID
 
 class CustomizationTest {
     @Test
     fun `Should successfully instantiate a customization when minPermitted is 0 and options is not empty`() {
-        val id = Id(UUID.randomUUID())
+        val id = Id()
         val name = Name(randomString(30))
         val description = Description(randomString(1000))
         val quantity = Quantity(0, 1)
-        val status = Status.AVAILABLE
+        val status = AVAILABLE
         val options = mutableListOf(mockOption())
 
         val customization =
@@ -58,11 +58,11 @@ class CustomizationTest {
 
     @Test
     fun `Should fail to instantiate a customization when the number of AVAILABLE options is less than minPermitted`() {
-        val id = Id(UUID.randomUUID())
+        val id = Id()
         val name = Name(randomString(30))
         val description = Description(randomString(1000))
         val quantity = Quantity(1, 1)
-        val status = Status.AVAILABLE
+        val status = AVAILABLE
         val option = mockOption()
 
         val customization =
@@ -82,7 +82,7 @@ class CustomizationTest {
         customization.status shouldBe status
         customization.options shouldContain option
 
-        option.status = Status.UNAVAILABLE
+        option.status = UNAVAILABLE
 
         shouldThrow<CustomizationMinPermittedException> {
             customization.updateOption(option)
@@ -91,11 +91,11 @@ class CustomizationTest {
 
     @Test
     fun `Should successfully update mutable values of a customization`() {
-        val id = Id(UUID.randomUUID())
+        val id = Id()
         val name = Name(randomString(30))
         val description = Description(randomString(1000))
         val quantity = Quantity(0, 1)
-        val status = Status.AVAILABLE
+        val status = AVAILABLE
         val options = mutableListOf(mockOption())
 
         val customization =
@@ -119,7 +119,7 @@ class CustomizationTest {
         val updatedDescription = Description(randomString(1000))
         val updatedQuantity = Quantity(1, 1)
 
-        customization.status = Status.UNAVAILABLE
+        customization.status = UNAVAILABLE
         customization.name = updatedName
         customization.description = updatedDescription
         customization.quantity = updatedQuantity
@@ -128,17 +128,17 @@ class CustomizationTest {
         customization.name.value shouldBe updatedName.value
         customization.description?.value shouldBe updatedDescription.value
         customization.quantity shouldBe updatedQuantity
-        customization.status shouldBe Status.UNAVAILABLE
+        customization.status shouldBe UNAVAILABLE
         customization.options shouldBe options
     }
 
     @Test
     fun `Should successfully instantiate a customization when minPermitted is 1 and options size matches minPermitted`() {
-        val id = Id(UUID.randomUUID())
+        val id = Id()
         val name = Name(randomString(30))
         val description = Description(randomString(1000))
         val quantity = Quantity(1, 1)
-        val status = Status.AVAILABLE
+        val status = AVAILABLE
         val options = mutableListOf(mockOption())
 
         val customization =
@@ -161,11 +161,11 @@ class CustomizationTest {
 
     @Test
     fun `Should fail to instantiate a customization when options are empty`() {
-        val id = Id(UUID.randomUUID())
+        val id = Id()
         val name = Name(randomString(30))
         val description = Description(randomString(1000))
         val quantity = Quantity(0, 2)
-        val status = Status.AVAILABLE
+        val status = AVAILABLE
         val options = mutableListOf<Option>()
 
         val exception =
@@ -342,13 +342,13 @@ class CustomizationTest {
     fun `Should throw CustomizationMinPermittedException when minimum quantity is greater than the quantity of available options`() {
         val option =
             mockOptionWith {
-                status = Status.UNAVAILABLE
+                status = UNAVAILABLE
             }
-        val id = Id(UUID.randomUUID())
+        val id = Id()
         val name = Name(randomString(30))
         val description = Description(randomString(1000))
         val quantity = Quantity(0, 1)
-        val status = Status.AVAILABLE
+        val status = AVAILABLE
 
         val customization =
             Customization(

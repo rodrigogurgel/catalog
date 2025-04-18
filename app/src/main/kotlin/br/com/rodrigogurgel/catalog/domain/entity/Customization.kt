@@ -10,6 +10,7 @@ import br.com.rodrigogurgel.catalog.domain.vo.Name
 import br.com.rodrigogurgel.catalog.domain.vo.Price
 import br.com.rodrigogurgel.catalog.domain.vo.Quantity
 import br.com.rodrigogurgel.catalog.domain.vo.Status
+import br.com.rodrigogurgel.catalog.domain.vo.Status.AVAILABLE
 import org.apache.commons.lang3.builder.EqualsBuilder
 import org.apache.commons.lang3.builder.HashCodeBuilder
 
@@ -37,7 +38,7 @@ class Customization(
     }
 
     private fun validateQuantity() {
-        val availableOptions = options.count { it.status == Status.AVAILABLE }
+        val availableOptions = options.count { it.status == AVAILABLE }
         if (quantity.minPermitted > availableOptions) {
             throw CustomizationMinPermittedException(id)
         }

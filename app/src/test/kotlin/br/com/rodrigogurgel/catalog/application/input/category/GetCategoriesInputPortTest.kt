@@ -1,0 +1,133 @@
+package br.com.rodrigogurgel.catalog.application.input.category
+
+import br.com.rodrigogurgel.catalog.application.exception.StoreNotFoundException
+import br.com.rodrigogurgel.catalog.application.port.input.category.GetCategoriesInputPort
+import br.com.rodrigogurgel.catalog.application.port.output.datastore.CategoryDatastoreOutputPort
+import br.com.rodrigogurgel.catalog.application.port.output.datastore.StoreDatastoreOutputPort
+import br.com.rodrigogurgel.catalog.application.utils.normalizeLimit
+import br.com.rodrigogurgel.catalog.application.utils.normalizeOffset
+import br.com.rodrigogurgel.catalog.domain.vo.Id
+import br.com.rodrigogurgel.catalog.fixture.mock.mockCategory
+import com.github.michaelbull.result.Ok
+import io.kotest.matchers.booleans.shouldBeTrue
+import io.kotest.matchers.shouldBe
+import io.mockk.coEvery
+import io.mockk.coVerifySequence
+import io.mockk.mockk
+import kotlinx.coroutines.test.runTest
+import org.junit.jupiter.api.Test
+
+class GetCategoriesInputPortTest {
+    private val storeDatastoreOutputPort: StoreDatastoreOutputPort = mockk()
+    private val categoryDatastoreOutputPort: CategoryDatastoreOutputPort = mockk()
+
+    private val getCategoriesInputPort =
+        GetCategoriesInputPort(
+            storeDatastoreOutputPort,
+            categoryDatastoreOutputPort,
+        )
+
+    @Test
+    fun `Should successfully get categories`() = runTest {
+        val storeId = Id()
+        val categories = listOf(mockCategory(), mockCategory())
+        val limit = 20
+        val offset = 0
+
+        coEvery { storeDatastoreOutputPort.exists(storeId) } returns Ok(true)
+        coEvery { categoryDatastoreOutputPort.getCategories(storeId, limit, offset) } returns Ok(categories)
+
+        val result = getCategoriesInputPort.execute(storeId, limit, offset)
+
+        result.isOk.shouldBeTrue()
+        result.value shouldBe categories
+
+        coVerifySequence {
+            storeDatastoreOutputPort.exists(storeId)
+            categoryDatastoreOutputPort.getCategories(storeId, limit, offset)
+        }
+    }
+
+    @Test
+    fun `Should successfully get categories when the limit parameter is negative`() = runTest {
+        val storeId = Id()
+        val categories = listOf(mockCategory(), mockCategory())
+        val limit = -1
+        val offset = 0
+
+        coEvery { storeDatastoreOutputPort.exists(storeId) } returns Ok(true)
+        coEvery { categoryDatastoreOutputPort.getCategories(storeId, normalizeLimit(limit), offset) } returns Ok(categories)
+
+        val result = getCategoriesInputPort.execute(storeId, limit, offset)
+
+        result.isOk.shouldBeTrue()
+        result.value shouldBe categories
+
+        coVerifySequence {
+            storeDatastoreOutputPort.exists(storeId)
+            categoryDatastoreOutputPort.getCategories(storeId, normalizeLimit(limit), offset)
+        }
+    }
+
+    @Test
+    fun `Should successfully get categories when the limit parameter is greater than 20`() = runTest {
+        val storeId = Id()
+        val categories = listOf(mockCategory(), mockCategory())
+        val limit = 21
+        val offset = 0
+
+        coEvery { storeDatastoreOutputPort.exists(storeId) } returns Ok(true)
+        coEvery { categoryDatastoreOutputPort.getCategories(storeId, normalizeLimit(limit), offset) } returns Ok(categories)
+
+        val result = getCategoriesInputPort.execute(storeId, limit, offset)
+
+        result.isOk.shouldBeTrue()
+        result.value shouldBe categories
+
+        coVerifySequence {
+            storeDatastoreOutputPort.exists(storeId)
+            categoryDatastoreOutputPort.getCategories(storeId, normalizeLimit(limit), offset)
+        }
+    }
+
+    @Test
+    fun `Should successfully get categories when the offset parameter is negative`() = runTest {
+        val storeId = Id()
+        val categories = listOf(mockCategory(), mockCategory())
+        val limit = 20
+        val offset = -1
+
+        coEvery { storeDatastoreOutputPort.exists(storeId) } returns Ok(true)
+        coEvery { categoryDatastoreOutputPort.getCategories(storeId, limit, normalizeOffset(offset)) } returns Ok(categories)
+
+        val result = getCategoriesInputPort.execute(storeId, limit, offset)
+
+        result.isOk.shouldBeTrue()
+        result.value shouldBe categories
+
+        coVerifySequence {
+            storeDatastoreOutputPort.exists(storeId)
+            categoryDatastoreOutputPort.getCategories(storeId, limit, normalizeOffset(offset))
+        }
+    }
+
+    @Test
+    fun `Should fail to get categories when the store does not exist`() = runTest {
+        val storeId = Id()
+        val categories = listOf(mockCategory(), mockCategory())
+        val limit = 20
+        val offset = 0
+
+        coEvery { storeDatastoreOutputPort.exists(storeId) } returns Ok(false)
+        coEvery { categoryDatastoreOutputPort.getCategories(storeId, limit, offset) } returns Ok(categories)
+
+        val result = getCategoriesInputPort.execute(storeId, limit, offset)
+
+        result.isErr.shouldBeTrue()
+        result.error shouldBe StoreNotFoundException(storeId)
+
+        coVerifySequence {
+            storeDatastoreOutputPort.exists(storeId)
+        }
+    }
+}

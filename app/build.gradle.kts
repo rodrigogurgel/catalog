@@ -25,16 +25,26 @@ repositories {
     mavenCentral()
 }
 
+// Versions
+val apacheCommonsVersion = "3.17.0"
+val detektVersion = "1.23.8"
+val kotestVersion = "5.9.1"
+val springMockkVersion = "4.0.2"
+val opentelemetryBOMAlpha = "1.47.0-alpha"
+val opentelemetryInstrumentationBOM = "2.13.3"
+val opentelemetryInstrumentationBOMAlpha = "2.13.3-alpha"
+val logstashVersion = "8.0"
+val kotlinResultVersion = "2.0.1"
+
+dependencyManagement {
+    imports {
+        mavenBom("io.opentelemetry:opentelemetry-bom-alpha:$opentelemetryBOMAlpha")
+        mavenBom("io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom:$opentelemetryInstrumentationBOM")
+        mavenBom("io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom-alpha:$opentelemetryInstrumentationBOMAlpha")
+    }
+}
+
 dependencies {
-    // Versions
-    val apacheCommonsVersion = "3.17.0"
-    val detektVersion = "1.23.8"
-    val kotestVersion = "5.9.1"
-    val springMockkVersion = "4.0.2"
-
-    // Misc
-    implementation("org.apache.commons:commons-lang3:$apacheCommonsVersion")
-
     // Kotlin
     implementation("org.jetbrains.kotlin:kotlin-reflect")
 
@@ -48,8 +58,24 @@ dependencies {
     // Jackson
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 
+    // Logstash
+    implementation("net.logstash.logback:logstash-logback-encoder:$logstashVersion")
+
+    // Misc
+    implementation("org.apache.commons:commons-lang3:$apacheCommonsVersion")
+
     // Spring
     implementation("org.springframework.boot:spring-boot-starter-webflux")
+
+    // Observability
+    implementation("io.opentelemetry:opentelemetry-exporter-otlp")
+    implementation("io.opentelemetry:opentelemetry-extension-kotlin")
+    implementation("io.opentelemetry:opentelemetry-api-incubator")
+    implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api-incubator")
+
+    // Kotlin Result
+    implementation("com.michael-bull.kotlin-result:kotlin-result:$kotlinResultVersion")
+    implementation("com.michael-bull.kotlin-result:kotlin-result-coroutines:$kotlinResultVersion")
 
     // Detekt
     detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:$detektVersion")
@@ -89,7 +115,8 @@ kover {
             excludes {
                 classes(
                     "br.com.rodrigogurgel.catalog.CatalogApplication*",
-                    "br.com.rodrigogurgel.catalog.domain.vo.*"
+                    "br.com.rodrigogurgel.catalog.domain.vo.*",
+                    "br.com.rodrigogurgel.catalog.common.*",
                 )
             }
         }
