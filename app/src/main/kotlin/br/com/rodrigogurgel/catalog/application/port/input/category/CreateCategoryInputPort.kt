@@ -30,7 +30,7 @@ class CreateCategoryInputPort(
     ) = suspendSpan(action()) {
         storeDatastoreOutputPort.exists(storeId)
             .toErrorIf({ !it }) { StoreNotFoundException(storeId) }
-            .andThen { categoryDatastoreOutputPort.exists(category.id) }
+            .andThen { categoryDatastoreOutputPort.exists(storeId, category.id) }
             .toErrorIf({ it }) { CategoryAlreadyExistsException(category.id) }
             .andThen { categoryDatastoreOutputPort.create(storeId, category) }
             .onSuccess { logger.success(action(), STORE_ID to storeId, CATEGORY to category) }

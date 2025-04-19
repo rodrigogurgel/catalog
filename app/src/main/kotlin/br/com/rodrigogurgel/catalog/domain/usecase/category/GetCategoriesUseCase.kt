@@ -9,6 +9,6 @@ interface GetCategoriesUseCase : UseCase {
     suspend fun execute(
         storeId: Id,
         limit: Int,
-        offset: Int,
-    ): Result<List<Category>, Throwable>
+        cursor: String?,
+    ): Result<Pair<String?, List<Category>>, Throwable>
 }

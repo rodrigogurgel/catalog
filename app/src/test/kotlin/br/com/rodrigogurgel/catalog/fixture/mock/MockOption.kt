@@ -22,7 +22,9 @@ data class MockOption(
     var quantity: Quantity = Quantity(0, 1),
     var status: Status = AVAILABLE,
     var customizations: MutableList<Customization> = mutableListOf(),
-    var medias: List<Media> = emptyList(),
+    var medias: List<Media> = List(Random.nextInt(0, 11)) {
+        mockMedia()
+    }
 )
 
 fun mockOption() =

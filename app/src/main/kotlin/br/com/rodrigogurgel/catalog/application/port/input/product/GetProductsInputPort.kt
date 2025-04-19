@@ -5,8 +5,8 @@ import br.com.rodrigogurgel.catalog.application.port.output.datastore.ProductDat
 import br.com.rodrigogurgel.catalog.application.port.output.datastore.StoreDatastoreOutputPort
 import br.com.rodrigogurgel.catalog.application.utils.normalizeLimit
 import br.com.rodrigogurgel.catalog.application.utils.normalizeOffset
+import br.com.rodrigogurgel.catalog.common.logger.extensions.CURSOR
 import br.com.rodrigogurgel.catalog.common.logger.extensions.LIMIT
-import br.com.rodrigogurgel.catalog.common.logger.extensions.OFFSET
 import br.com.rodrigogurgel.catalog.common.logger.extensions.RESULT
 import br.com.rodrigogurgel.catalog.common.logger.extensions.STORE_ID
 import br.com.rodrigogurgel.catalog.common.logger.extensions.failure
@@ -34,8 +34,8 @@ class GetProductsInputPort(
         storeDatastoreOutputPort.exists(storeId)
             .toErrorIf({ !it }) { StoreNotFoundException(storeId) }
             .andThen { productDatastoreOutputPort.getProducts(storeId, normalizeLimit(limit), normalizeOffset(offset)) }
-            .onSuccess { logger.success(action(), STORE_ID to storeId, LIMIT to limit, OFFSET to offset, RESULT to it) }
-            .onFailure { logger.failure(action(), it, STORE_ID to storeId, LIMIT to limit, OFFSET to offset) }
+            .onSuccess { logger.success(action(), STORE_ID to storeId, LIMIT to limit, CURSOR to offset, RESULT to it) }
+            .onFailure { logger.failure(action(), it, STORE_ID to storeId, LIMIT to limit, CURSOR to offset) }
     }
 
     override fun action() = "get-products"

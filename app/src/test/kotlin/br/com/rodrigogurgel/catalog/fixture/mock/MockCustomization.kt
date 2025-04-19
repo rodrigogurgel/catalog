@@ -9,6 +9,7 @@ import br.com.rodrigogurgel.catalog.domain.vo.Quantity
 import br.com.rodrigogurgel.catalog.domain.vo.Status
 import br.com.rodrigogurgel.catalog.domain.vo.Status.AVAILABLE
 import br.com.rodrigogurgel.catalog.fixture.utils.randomString
+import kotlin.random.Random
 
 data class MockCustomization(
     var id: Id = Id(),
@@ -16,7 +17,9 @@ data class MockCustomization(
     var description: Description? = Description(randomString(100)),
     var quantity: Quantity = Quantity(0, 1),
     var status: Status = AVAILABLE,
-    var options: MutableList<Option> = mutableListOf(mockOption()),
+    var options: MutableList<Option> = MutableList(Random.nextInt(1, 11)) {
+        mockOption()
+    },
 )
 
 fun mockCustomization(): Customization =

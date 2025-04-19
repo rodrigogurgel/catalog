@@ -35,14 +35,8 @@ val opentelemetryInstrumentationBOM = "2.13.3"
 val opentelemetryInstrumentationBOMAlpha = "2.13.3-alpha"
 val logstashVersion = "8.0"
 val kotlinResultVersion = "2.0.1"
-
-dependencyManagement {
-    imports {
-        mavenBom("io.opentelemetry:opentelemetry-bom-alpha:$opentelemetryBOMAlpha")
-        mavenBom("io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom:$opentelemetryInstrumentationBOM")
-        mavenBom("io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom-alpha:$opentelemetryInstrumentationBOMAlpha")
-    }
-}
+val springDocVersion = "2.8.5"
+val amazonSDKVersion = "2.31.23"
 
 dependencies {
     // Kotlin
@@ -65,7 +59,14 @@ dependencies {
     implementation("org.apache.commons:commons-lang3:$apacheCommonsVersion")
 
     // Spring
-    implementation("org.springframework.boot:spring-boot-starter-webflux")
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
+    implementation("org.springframework.boot:spring-boot-starter-aop")
+    implementation("org.springframework.boot:spring-boot-starter-web")
+    annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
+
+    // Swagger
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:$springDocVersion")
+    implementation("org.springdoc:springdoc-openapi-starter-common:$springDocVersion")
 
     // Observability
     implementation("io.opentelemetry:opentelemetry-exporter-otlp")
@@ -77,11 +78,18 @@ dependencies {
     implementation("com.michael-bull.kotlin-result:kotlin-result:$kotlinResultVersion")
     implementation("com.michael-bull.kotlin-result:kotlin-result-coroutines:$kotlinResultVersion")
 
+    // DynamoDB
+    implementation("software.amazon.awssdk:dynamodb-enhanced")
+
     // Detekt
     detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:$detektVersion")
 
     // Spring Test
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.springframework.boot:spring-boot-starter-test") {
+        exclude("org.mockito", "mockito-junit-jupiter")
+        exclude("org.mockito", "mockito-core")
+    }
+    testImplementation("org.springframework.boot:spring-boot-testcontainers")
 
     // Project Reactor Test
     testImplementation("io.projectreactor:reactor-test")
@@ -93,6 +101,10 @@ dependencies {
     // Mockk Test
     testImplementation("com.ninja-squad:springmockk:$springMockkVersion")
 
+    // Test Containers
+    testImplementation("org.testcontainers:junit-jupiter")
+    testImplementation("org.testcontainers:localstack")
+
     // Kotest Test
     testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
     testImplementation("io.kotest:kotest-property:$kotestVersion")
@@ -100,6 +112,15 @@ dependencies {
 
     // Kotlinx Coroutines Test
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test")
+}
+
+dependencyManagement {
+    imports {
+        mavenBom("io.opentelemetry:opentelemetry-bom-alpha:$opentelemetryBOMAlpha")
+        mavenBom("io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom:$opentelemetryInstrumentationBOM")
+        mavenBom("io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom-alpha:$opentelemetryInstrumentationBOMAlpha")
+        mavenBom("software.amazon.awssdk:bom:$amazonSDKVersion")
+    }
 }
 
 detekt {
@@ -117,6 +138,14 @@ kover {
                     "br.com.rodrigogurgel.catalog.CatalogApplication*",
                     "br.com.rodrigogurgel.catalog.domain.vo.*",
                     "br.com.rodrigogurgel.catalog.common.*",
+                    "br.com.rodrigogurgel.catalog.framework.adapter.output.datastore.dynamodb.utils.*",
+                    "br.com.rodrigogurgel.catalog.framework.adapter.output.datastore.dynamodb.extensions.*",
+                    "br.com.rodrigogurgel.catalog.framework.adapter.input.rest.filter.*",
+                    "br.com.rodrigogurgel.catalog.framework.adapter.input.rest.dto.mapper.media.*",
+                    "br.com.rodrigogurgel.catalog.framework.adapter.input.rest.extensions.*",
+                    "br.com.rodrigogurgel.catalog.framework.adapter.input.rest.extensions.*",
+                    "br.com.rodrigogurgel.catalog.framework.config.*",
+                    "br.com.rodrigogurgel.catalog.framework.adapter.input.rest.requestservelet.*"
                 )
             }
         }

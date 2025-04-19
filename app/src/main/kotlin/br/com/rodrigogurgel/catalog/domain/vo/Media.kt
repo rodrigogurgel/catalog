@@ -6,19 +6,19 @@ import java.net.URL
 /**
  * Represents a file of media with path and type.
  *
- * @throws MalformedURLException if the [path] was blank or isn't a valid URL.
+ * @throws MalformedURLException if the [url] was blank or isn't a valid URL.
  */
 class Media(
-    val path: String,
+    val url: String,
     val type: MediaType
 ) {
     init {
         runCatching {
-            URL(path)
-        }.getOrElse { throw MalformedURLException(path) }
+            URL(url)
+        }.getOrElse { throw MalformedURLException(url) }
     }
 
     override fun toString(): String {
-        return path
+        return url
     }
 }

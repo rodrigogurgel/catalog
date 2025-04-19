@@ -32,7 +32,7 @@ class CreateCategoryInputPortTest {
         val category = mockCategory()
 
         coEvery { storeDatastoreOutputPort.exists(storeId) } returns Ok(true)
-        coEvery { categoryDatastoreOutputPort.exists(category.id) } returns Ok(false)
+        coEvery { categoryDatastoreOutputPort.exists(storeId, category.id) } returns Ok(false)
         coEvery { categoryDatastoreOutputPort.create(storeId, category) } returns Ok(Unit)
 
         val result = createCategoryInputPort.execute(storeId, category)
@@ -41,7 +41,7 @@ class CreateCategoryInputPortTest {
 
         coVerifySequence {
             storeDatastoreOutputPort.exists(storeId)
-            categoryDatastoreOutputPort.exists(category.id)
+            categoryDatastoreOutputPort.exists(storeId, category.id)
             categoryDatastoreOutputPort.create(storeId, category)
         }
     }
@@ -69,7 +69,7 @@ class CreateCategoryInputPortTest {
         val category = mockCategory()
 
         coEvery { storeDatastoreOutputPort.exists(storeId) } returns Ok(true)
-        coEvery { categoryDatastoreOutputPort.exists(category.id) } returns Ok(true)
+        coEvery { categoryDatastoreOutputPort.exists(storeId, category.id) } returns Ok(true)
 
         val result = createCategoryInputPort.execute(storeId, category)
 
@@ -78,7 +78,7 @@ class CreateCategoryInputPortTest {
 
         coVerifySequence {
             storeDatastoreOutputPort.exists(storeId)
-            categoryDatastoreOutputPort.exists(category.id)
+            categoryDatastoreOutputPort.exists(storeId, category.id)
         }
     }
 }

@@ -13,7 +13,7 @@ class MediaTest {
         val path = "https://www.example.com"
         val medias = Media(path, GIF)
 
-        medias.path shouldBe path
+        medias.url shouldBe path
     }
 
     @Test

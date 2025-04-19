@@ -4,9 +4,8 @@ import br.com.rodrigogurgel.catalog.application.exception.StoreNotFoundException
 import br.com.rodrigogurgel.catalog.application.port.output.datastore.CategoryDatastoreOutputPort
 import br.com.rodrigogurgel.catalog.application.port.output.datastore.StoreDatastoreOutputPort
 import br.com.rodrigogurgel.catalog.application.utils.normalizeLimit
-import br.com.rodrigogurgel.catalog.application.utils.normalizeOffset
+import br.com.rodrigogurgel.catalog.common.logger.extensions.CURSOR
 import br.com.rodrigogurgel.catalog.common.logger.extensions.LIMIT
-import br.com.rodrigogurgel.catalog.common.logger.extensions.OFFSET
 import br.com.rodrigogurgel.catalog.common.logger.extensions.RESULT
 import br.com.rodrigogurgel.catalog.common.logger.extensions.STORE_ID
 import br.com.rodrigogurgel.catalog.common.logger.extensions.failure
@@ -29,7 +28,7 @@ class GetCategoriesInputPort(
     override suspend fun execute(
         storeId: Id,
         limit: Int,
-        offset: Int,
+        cursor: String?,
     ) = suspendSpan(action()) {
         storeDatastoreOutputPort.exists(storeId)
             .toErrorIf({ !it }) { StoreNotFoundException(storeId) }
@@ -37,11 +36,11 @@ class GetCategoriesInputPort(
                 categoryDatastoreOutputPort.getCategories(
                     storeId,
                     normalizeLimit(limit),
-                    normalizeOffset(offset)
+                    cursor
                 )
             }
-            .onSuccess { logger.success(action(), STORE_ID to storeId, LIMIT to limit, OFFSET to offset, RESULT to it) }
-            .onFailure { logger.failure(action(), it, STORE_ID to storeId, LIMIT to limit, OFFSET to offset) }
+            .onSuccess { logger.success(action(), STORE_ID to storeId, LIMIT to limit, CURSOR to cursor, RESULT to it) }
+            .onFailure { logger.failure(action(), it, STORE_ID to storeId, LIMIT to limit, CURSOR to cursor) }
     }
 
     override fun action() = "get-categories"

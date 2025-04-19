@@ -27,7 +27,8 @@ data class Option(
      * @return A list of Customization objects that are found in the children of the current customization.
      */
     fun getAllCustomizationsInChildren(): List<Customization> {
-        return customizations + customizations.flatMap { it.getAllCustomizationsInChildren() }
+        return customizations + customizations
+            .flatMap { customization -> customization.getAllCustomizationsInChildren() }
     }
 
     /**

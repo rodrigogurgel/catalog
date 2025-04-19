@@ -2,7 +2,7 @@ package br.com.rodrigogurgel.catalog.domain.vo
 
 import java.util.UUID
 
-class Id(
+data class Id(
     val value: UUID,
 ) {
     constructor() : this(

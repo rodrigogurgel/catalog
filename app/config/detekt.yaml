@@ -141,6 +141,8 @@ complexity:
     ignoreDefaultParameters: false
     ignoreDataClasses: true
     ignoreAnnotatedParameter: []
+    excludes:
+      - '**Controller.kt'
   MethodOverloading:
     active: false
     threshold: 6
@@ -180,8 +182,7 @@ complexity:
     ignoreDeprecated: false
     ignorePrivate: false
     ignoreOverridden: false
-    ignoreAnnotatedFunctions: []
-
+    ignoreAnnotatedFunctions: [Bean]
 coroutines:
   active: true
   GlobalCoroutineUsage:

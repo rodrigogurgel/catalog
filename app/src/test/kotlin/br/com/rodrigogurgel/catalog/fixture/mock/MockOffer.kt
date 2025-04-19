@@ -20,7 +20,9 @@ data class MockOffer(
     var price: Price = Price(BigDecimal.valueOf(Random.nextDouble(0.1, 100.0))),
     var status: Status = AVAILABLE,
     var customizations: MutableList<Customization> = mutableListOf(),
-    var medias: List<Media> = emptyList(),
+    var medias: List<Media> = List(Random.nextInt(0, 11)) {
+        mockMedia()
+    },
 )
 
 fun mockOffer(): Offer =

@@ -8,8 +8,8 @@ import br.com.rodrigogurgel.catalog.application.port.output.datastore.StoreDatas
 import br.com.rodrigogurgel.catalog.application.utils.normalizeLimit
 import br.com.rodrigogurgel.catalog.application.utils.normalizeOffset
 import br.com.rodrigogurgel.catalog.common.logger.extensions.CATEGORY_ID
+import br.com.rodrigogurgel.catalog.common.logger.extensions.CURSOR
 import br.com.rodrigogurgel.catalog.common.logger.extensions.LIMIT
-import br.com.rodrigogurgel.catalog.common.logger.extensions.OFFSET
 import br.com.rodrigogurgel.catalog.common.logger.extensions.RESULT
 import br.com.rodrigogurgel.catalog.common.logger.extensions.STORE_ID
 import br.com.rodrigogurgel.catalog.common.logger.extensions.failure
@@ -53,7 +53,7 @@ class GetOffersInputPort(
                     STORE_ID to storeId,
                     CATEGORY_ID to categoryId,
                     LIMIT to limit,
-                    OFFSET to offset,
+                    CURSOR to offset,
                     RESULT to it,
                 )
             }
@@ -64,7 +64,7 @@ class GetOffersInputPort(
                     STORE_ID to storeId,
                     CATEGORY_ID to categoryId,
                     LIMIT to limit,
-                    OFFSET to offset,
+                    CURSOR to offset,
                 )
             }
     }
