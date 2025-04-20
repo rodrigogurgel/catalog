@@ -30,14 +30,14 @@ class CreateProductInputPortTest {
         val product = mockProduct()
 
         coEvery { storeDatastoreOutputPort.exists(storeId) } returns Ok(true)
-        coEvery { productDatastoreOutputPort.exists(product.id) } returns Ok(false)
+        coEvery { productDatastoreOutputPort.exists(storeId, product.id) } returns Ok(false)
         coEvery { productDatastoreOutputPort.create(storeId, product) } returns Ok(Unit)
 
         createProductInputPort.execute(storeId, product)
 
         coVerifySequence {
             storeDatastoreOutputPort.exists(storeId)
-            productDatastoreOutputPort.exists(product.id)
+            productDatastoreOutputPort.exists(storeId, product.id)
             productDatastoreOutputPort.create(storeId, product)
         }
     }
@@ -65,7 +65,7 @@ class CreateProductInputPortTest {
         val product = mockProduct()
 
         coEvery { storeDatastoreOutputPort.exists(storeId) } returns Ok(true)
-        coEvery { productDatastoreOutputPort.exists(product.id) } returns Ok(true)
+        coEvery { productDatastoreOutputPort.exists(storeId, product.id) } returns Ok(true)
 
         val result = createProductInputPort.execute(storeId, product)
 
@@ -74,7 +74,7 @@ class CreateProductInputPortTest {
 
         coVerifySequence {
             storeDatastoreOutputPort.exists(storeId)
-            productDatastoreOutputPort.exists(product.id)
+            productDatastoreOutputPort.exists(storeId, product.id)
         }
     }
 }

@@ -20,10 +20,10 @@ import br.com.rodrigogurgel.catalog.domain.usecase.offer.UpdateOptionOnChildrenU
 import br.com.rodrigogurgel.catalog.domain.vo.Id
 import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.andThen
+import com.github.michaelbull.result.coroutines.runSuspendCatching
 import com.github.michaelbull.result.map
 import com.github.michaelbull.result.onFailure
 import com.github.michaelbull.result.onSuccess
-import com.github.michaelbull.result.runCatching
 import com.github.michaelbull.result.toErrorIf
 import com.github.michaelbull.result.toErrorIfNull
 import org.slf4j.LoggerFactory
@@ -45,7 +45,7 @@ class UpdateOptionOnChildrenInputPort(
             .toErrorIf({ !it }) { StoreNotFoundException(storeId) }
             .andThen { offerDatastoreOutputPort.findById(storeId, offerId) }
             .toErrorIfNull { OfferNotFoundException(storeId, offerId) }
-            .andThen { updateOptionOnCustomization(it, customizationId, option) }
+            .andThen { updateOptionOnCustomization(storeId, it, customizationId, option) }
             .andThen { offerDatastoreOutputPort.update(storeId, it) }
             .onSuccess {
                 logger.success(
@@ -69,10 +69,11 @@ class UpdateOptionOnChildrenInputPort(
     }
 
     private suspend fun updateOptionOnCustomization(
+        storeId: Id,
         offer: Offer,
         customizationId: Id,
         option: Option
-    ): Result<Offer, Throwable> = runCatching {
+    ): Result<Offer, Throwable> = runSuspendCatching {
         val customization =
             offer.findCustomizationInChildrenById(customizationId) ?: throw CustomizationNotFoundException(
                 customizationId
@@ -81,7 +82,7 @@ class UpdateOptionOnChildrenInputPort(
         offer.validate()
     }.andThen {
         val productIds = offer.getAllProducts().map { it.id }
-        productDatastoreOutputPort.getIfNotExists(productIds)
+        productDatastoreOutputPort.getIfNotExists(storeId, productIds)
             .toErrorIf({ it.isNotEmpty() }) { ProductsNotFoundException(it) }
     }.map { offer }
 

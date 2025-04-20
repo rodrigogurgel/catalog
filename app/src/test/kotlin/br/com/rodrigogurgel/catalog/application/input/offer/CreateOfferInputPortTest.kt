@@ -44,7 +44,9 @@ class CreateOfferInputPortTest {
         coEvery { categoryDatastoreOutputPort.exists(storeId, categoryId) } returns Ok(true)
         coEvery { offerDatastoreOutputPort.exists(offer.id) } returns Ok(false)
         coEvery { offerDatastoreOutputPort.create(storeId, categoryId, offer) } returns Ok(Unit)
-        coEvery { productDatastoreOutputPort.getIfNotExists(offer.getAllProducts().map { it.id }) } returns Ok(emptyList())
+        coEvery {
+            productDatastoreOutputPort.getIfNotExists(storeId, offer.getAllProducts().map { it.id })
+        } returns Ok(emptyList())
 
         val result = createOfferInputPort.execute(storeId, categoryId, offer)
 
@@ -54,7 +56,7 @@ class CreateOfferInputPortTest {
             storeDatastoreOutputPort.exists(storeId)
             categoryDatastoreOutputPort.exists(storeId, categoryId)
             offerDatastoreOutputPort.exists(offer.id)
-            productDatastoreOutputPort.getIfNotExists(offer.getAllProducts().map { it.id })
+            productDatastoreOutputPort.getIfNotExists(storeId, offer.getAllProducts().map { it.id })
             offerDatastoreOutputPort.create(storeId, categoryId, offer)
         }
     }
@@ -131,6 +133,7 @@ class CreateOfferInputPortTest {
         coEvery { offerDatastoreOutputPort.create(storeId, categoryId, offer) } returns Ok(Unit)
         coEvery {
             productDatastoreOutputPort.getIfNotExists(
+                storeId,
                 offer.getAllProducts().map {
                     it.id
                 }
@@ -146,7 +149,7 @@ class CreateOfferInputPortTest {
             storeDatastoreOutputPort.exists(storeId)
             categoryDatastoreOutputPort.exists(storeId, categoryId)
             offerDatastoreOutputPort.exists(offer.id)
-            productDatastoreOutputPort.getIfNotExists(offer.getAllProducts().map { it.id })
+            productDatastoreOutputPort.getIfNotExists(storeId, offer.getAllProducts().map { it.id })
         }
     }
 }

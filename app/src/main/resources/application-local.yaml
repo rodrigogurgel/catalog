@@ -1,6 +1,3 @@
-spring:
-  profiles:
-    active: test
 aws:
   dynamodb:
     access-key-id: noop

@@ -19,10 +19,10 @@ import br.com.rodrigogurgel.catalog.domain.usecase.offer.CreateOfferUseCase
 import br.com.rodrigogurgel.catalog.domain.vo.Id
 import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.andThen
+import com.github.michaelbull.result.coroutines.runSuspendCatching
 import com.github.michaelbull.result.map
 import com.github.michaelbull.result.onFailure
 import com.github.michaelbull.result.onSuccess
-import com.github.michaelbull.result.runCatching
 import com.github.michaelbull.result.toErrorIf
 import org.slf4j.LoggerFactory
 
@@ -45,7 +45,7 @@ class CreateOfferInputPort(
             .toErrorIf({ !it }) { CategoryNotFoundException(storeId, categoryId) }
             .andThen { offerDatastoreOutputPort.exists(offer.id) }
             .toErrorIf({ it }) { OfferAlreadyExistsException(offer.id) }
-            .andThen { validateOffer(offer) }
+            .andThen { validateOffer(storeId, offer) }
             .andThen { offerDatastoreOutputPort.create(storeId, categoryId, offer) }
             .onSuccess {
                 logger.success(
@@ -66,11 +66,11 @@ class CreateOfferInputPort(
             }
     }
 
-    private suspend fun validateOffer(offer: Offer): Result<Offer, Throwable> = runCatching {
+    private suspend fun validateOffer(storeId: Id, offer: Offer): Result<Offer, Throwable> = runSuspendCatching {
         offer.validate()
     }.andThen {
         val productIds = offer.getAllProducts().map { it.id }
-        productDatastoreOutputPort.getIfNotExists(productIds)
+        productDatastoreOutputPort.getIfNotExists(storeId, productIds)
             .toErrorIf({ it.isNotEmpty() }) { ProductsNotFoundException(it) }
     }.map { offer }
 

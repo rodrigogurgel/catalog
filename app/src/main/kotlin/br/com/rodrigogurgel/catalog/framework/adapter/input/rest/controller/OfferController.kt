@@ -29,10 +29,10 @@ import br.com.rodrigogurgel.catalog.framework.adapter.input.rest.dto.response.of
 import br.com.rodrigogurgel.catalog.framework.adapter.input.rest.extensions.failure
 import br.com.rodrigogurgel.catalog.framework.adapter.input.rest.extensions.success
 import com.github.michaelbull.result.andThen
+import com.github.michaelbull.result.coroutines.runSuspendCatching
 import com.github.michaelbull.result.map
 import com.github.michaelbull.result.mapBoth
 import com.github.michaelbull.result.mapCatching
-import com.github.michaelbull.result.runCatching
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
@@ -90,7 +90,7 @@ class OfferController(
         @RequestParam storeId: UUID,
         @RequestParam categoryId: UUID,
         @RequestBody offerRequestDTO: OfferRequestDTO,
-    ): ResponseEntity<GenericResponseIdDTO> = runCatching {
+    ): ResponseEntity<GenericResponseIdDTO> = runSuspendCatching {
         offerRequestDTO.asEntity()
     }.andThen { offer ->
         createOfferUseCase.execute(Id(storeId), Id(categoryId), offer)
@@ -176,7 +176,7 @@ class OfferController(
         @RequestParam storeId: UUID,
         @PathVariable offerId: UUID,
         @RequestBody offerRequestDTO: OfferRequestDTO,
-    ): ResponseEntity<Unit> = runCatching {
+    ): ResponseEntity<Unit> = runSuspendCatching {
         offerRequestDTO.asEntity(offerId,)
     }.andThen { offer ->
         updateOfferUseCase.execute(Id(storeId), offer)
@@ -211,7 +211,7 @@ class OfferController(
         @RequestParam storeId: UUID,
         @PathVariable offerId: UUID,
         @RequestBody customizationRequestDTO: CustomizationRequestDTO,
-    ): ResponseEntity<GenericResponseIdDTO> = runCatching {
+    ): ResponseEntity<GenericResponseIdDTO> = runSuspendCatching {
         customizationRequestDTO.asEntity()
     }.andThen { customization ->
         addCustomizationUseCase.execute(Id(storeId), Id(offerId), customization)
@@ -247,7 +247,7 @@ class OfferController(
         @PathVariable offerId: UUID,
         @PathVariable customizationId: UUID,
         @RequestBody updateCustomizationRequestDTO: CustomizationRequestDTO,
-    ): ResponseEntity<Unit> = runCatching {
+    ): ResponseEntity<Unit> = runSuspendCatching {
         updateCustomizationRequestDTO.copy(id = customizationId).asEntity()
     }.andThen { customization ->
         updateCustomizationUseCase.execute(
@@ -321,7 +321,7 @@ class OfferController(
         @PathVariable offerId: UUID,
         @PathVariable optionId: UUID,
         @RequestBody customizationRequestDTO: CustomizationRequestDTO,
-    ): ResponseEntity<GenericResponseIdDTO> = runCatching {
+    ): ResponseEntity<GenericResponseIdDTO> = runSuspendCatching {
         customizationRequestDTO.asEntity()
     }.andThen { customization ->
         addCustomizationOnChildrenUseCase.execute(
@@ -364,7 +364,7 @@ class OfferController(
         @PathVariable optionId: UUID,
         @PathVariable customizationId: UUID,
         @RequestBody updateCustomizationRequestDTO: CustomizationRequestDTO,
-    ): ResponseEntity<GenericResponseIdDTO> = runCatching {
+    ): ResponseEntity<GenericResponseIdDTO> = runSuspendCatching {
         updateCustomizationRequestDTO.copy(customizationId).asEntity()
     }.andThen { customization ->
         updateCustomizationOnChildrenUseCase.execute(
@@ -441,7 +441,7 @@ class OfferController(
         @PathVariable offerId: UUID,
         @PathVariable customizationId: UUID,
         @RequestBody optionRequestDTO: OptionRequestDTO,
-    ): ResponseEntity<GenericResponseIdDTO> = runCatching {
+    ): ResponseEntity<GenericResponseIdDTO> = runSuspendCatching {
         optionRequestDTO.asEntity()
     }.andThen { option ->
         addOptionOnChildrenUseCase.execute(
@@ -482,7 +482,7 @@ class OfferController(
         @PathVariable customizationId: UUID,
         @PathVariable optionId: UUID,
         @RequestBody updateOptionRequestDTO: OptionRequestDTO,
-    ): ResponseEntity<GenericResponseIdDTO> = runCatching {
+    ): ResponseEntity<GenericResponseIdDTO> = runSuspendCatching {
         updateOptionRequestDTO.copy(id = optionId).asEntity()
     }.andThen { option ->
         updateOptionOnChildrenUseCase.execute(

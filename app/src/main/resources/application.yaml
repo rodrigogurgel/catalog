@@ -1,1 +1,3 @@
-spring.application.name=catalog
+spring:
+  application:
+    name: catalog

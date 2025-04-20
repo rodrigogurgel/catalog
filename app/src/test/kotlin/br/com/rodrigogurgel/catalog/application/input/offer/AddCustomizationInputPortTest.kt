@@ -39,7 +39,7 @@ class AddCustomizationInputPortTest {
         coEvery { offerDatastoreOutputPort.findById(storeId, offer.id) } returns Ok(offer)
         coEvery { offerDatastoreOutputPort.update(storeId, offer) } returns Ok(Unit)
         coEvery {
-            productDatastoreOutputPort.getIfNotExists(match { ids -> ids.containsAll(offer.getAllProducts().map { product -> product.id }) })
+            productDatastoreOutputPort.getIfNotExists(storeId, match { ids -> ids.containsAll(offer.getAllProducts().map { product -> product.id }) })
         } returns Ok(emptyList())
 
         val result = addCustomizationInput.execute(storeId, offer.id, customization)
@@ -50,6 +50,7 @@ class AddCustomizationInputPortTest {
             storeDatastoreOutputPort.exists(storeId)
             offerDatastoreOutputPort.findById(storeId, offer.id)
             productDatastoreOutputPort.getIfNotExists(
+                storeId,
                 match { ids -> ids.containsAll(offer.getAllProducts().map { product -> product.id }) }
             )
             offerDatastoreOutputPort.update(storeId, offer)
@@ -84,6 +85,7 @@ class AddCustomizationInputPortTest {
         coEvery { offerDatastoreOutputPort.findById(storeId, offer.id) } returns Ok(offer)
         coEvery {
             productDatastoreOutputPort.getIfNotExists(
+                storeId,
                 match {
                     it.containsAll(
                         offer.getAllProducts().map { product -> product.id } +
@@ -101,7 +103,7 @@ class AddCustomizationInputPortTest {
         coVerifySequence {
             storeDatastoreOutputPort.exists(storeId)
             offerDatastoreOutputPort.findById(storeId, offer.id)
-            productDatastoreOutputPort.getIfNotExists(offer.getAllProducts().map { it.id })
+            productDatastoreOutputPort.getIfNotExists(storeId, offer.getAllProducts().map { it.id })
         }
     }
 }

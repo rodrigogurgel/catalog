@@ -18,10 +18,10 @@ import br.com.rodrigogurgel.catalog.domain.usecase.offer.AddCustomizationUseCase
 import br.com.rodrigogurgel.catalog.domain.vo.Id
 import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.andThen
+import com.github.michaelbull.result.coroutines.runSuspendCatching
 import com.github.michaelbull.result.map
 import com.github.michaelbull.result.onFailure
 import com.github.michaelbull.result.onSuccess
-import com.github.michaelbull.result.runCatching
 import com.github.michaelbull.result.toErrorIf
 import com.github.michaelbull.result.toErrorIfNull
 import org.slf4j.LoggerFactory
@@ -42,7 +42,7 @@ class AddCustomizationInputPort(
             .toErrorIf({ !it }) { StoreNotFoundException(storeId) }
             .andThen { offerDatastoreOutputPort.findById(storeId, offerId) }
             .toErrorIfNull { OfferNotFoundException(storeId, offerId) }
-            .andThen { addCustomization(it, customization) }
+            .andThen { addCustomization(storeId, it, customization) }
             .andThen { offerDatastoreOutputPort.update(storeId, it) }
             .onSuccess {
                 logger.success(
@@ -64,14 +64,15 @@ class AddCustomizationInputPort(
     }
 
     private suspend fun addCustomization(
+        storeId: Id,
         offer: Offer,
         customization: Customization
-    ): Result<Offer, Throwable> = runCatching {
+    ): Result<Offer, Throwable> = runSuspendCatching {
         offer.addCustomization(customization)
         offer.validate()
     }.andThen {
         val productIds = offer.getAllProducts().map { it.id }
-        productDatastoreOutputPort.getIfNotExists(productIds)
+        productDatastoreOutputPort.getIfNotExists(storeId, productIds)
     }.toErrorIf({ it.isNotEmpty() }) { ProductsNotFoundException(it) }
         .map { offer }
 

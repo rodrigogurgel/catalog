@@ -1,22 +1,21 @@
 package br.com.rodrigogurgel.catalog.framework.adapter.output.datastore.dynamodb.repository
 
-import br.com.rodrigogurgel.catalog.domain.entity.Product
-import br.com.rodrigogurgel.catalog.domain.vo.Id
+import br.com.rodrigogurgel.catalog.framework.adapter.output.datastore.dynamodb.model.ProductModel
 import com.github.michaelbull.result.Result
+import java.util.UUID
 
 interface ProductRepository {
-    suspend fun countProducts(storeId: Id): com.github.michaelbull.result.Result<Long, Throwable>
-    suspend fun create(storeId: Id, product: Product): com.github.michaelbull.result.Result<Unit, Throwable>
-    suspend fun delete(storeId: Id, productId: Id): com.github.michaelbull.result.Result<Unit, Throwable>
-    suspend fun exists(productId: Id): com.github.michaelbull.result.Result<Boolean, Throwable>
-    suspend fun exists(storeId: Id, productId: Id): com.github.michaelbull.result.Result<Boolean, Throwable>
-    suspend fun findById(storeId: Id, productId: Id): com.github.michaelbull.result.Result<Product?, Throwable>
-    suspend fun getIfNotExists(productIds: List<Id>): com.github.michaelbull.result.Result<List<Id>, Throwable>
+    suspend fun countProducts(storeId: UUID): Result<Long, Throwable>
+    suspend fun create(productModel: ProductModel): Result<Unit, Throwable>
+    suspend fun delete(storeId: UUID, productId: UUID): Result<Unit, Throwable>
+    suspend fun exists(storeId: UUID, productId: UUID): Result<Boolean, Throwable>
+    suspend fun findById(storeId: UUID, productId: UUID): Result<ProductModel?, Throwable>
+    suspend fun getIfNotExists(storeId: UUID, productIds: List<UUID>): Result<List<UUID>, Throwable>
     suspend fun getProducts(
-        storeId: Id,
+        storeId: UUID,
         limit: Int,
-        offset: Int
-    ): com.github.michaelbull.result.Result<List<Product>, Throwable>
-    suspend fun productIsInUse(productId: Id): com.github.michaelbull.result.Result<Boolean, Throwable>
-    suspend fun update(storeId: Id, product: Product): Result<Unit, Throwable>
+        cursor: String?
+    ): Result<Pair<String?, List<ProductModel>>, Throwable>
+    suspend fun productIsInUse(productId: UUID): Result<Boolean, Throwable>
+    suspend fun update(productModel: ProductModel): Result<Unit, Throwable>
 }

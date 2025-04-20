@@ -27,10 +27,10 @@ import br.com.rodrigogurgel.catalog.framework.adapter.input.rest.extensions.fail
 import br.com.rodrigogurgel.catalog.framework.adapter.input.rest.extensions.success
 import com.github.michaelbull.result.andThen
 import com.github.michaelbull.result.coroutines.coroutineBinding
+import com.github.michaelbull.result.coroutines.runSuspendCatching
 import com.github.michaelbull.result.map
 import com.github.michaelbull.result.mapBoth
 import com.github.michaelbull.result.mapCatching
-import com.github.michaelbull.result.runCatching
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
@@ -146,7 +146,7 @@ class CategoryController(
     suspend fun createCategory(
         @RequestParam storeId: UUID,
         @RequestBody categoryRequestDTO: CategoryRequestDTO,
-    ): ResponseEntity<GenericResponseIdDTO> = runCatching {
+    ): ResponseEntity<GenericResponseIdDTO> = runSuspendCatching {
         categoryRequestDTO.asEntity()
     }.andThen { category ->
         createCategoryUseCase.execute(Id(storeId), category)
@@ -178,7 +178,7 @@ class CategoryController(
         @RequestParam storeId: UUID,
         @PathVariable categoryId: UUID,
         @RequestBody categoryRequestDTO: CategoryRequestDTO,
-    ): ResponseEntity<Unit> = runCatching {
+    ): ResponseEntity<Unit> = runSuspendCatching {
         categoryRequestDTO.asEntity(categoryId)
     }.andThen { category ->
         updateCategoryUseCase.execute(Id(storeId), category)

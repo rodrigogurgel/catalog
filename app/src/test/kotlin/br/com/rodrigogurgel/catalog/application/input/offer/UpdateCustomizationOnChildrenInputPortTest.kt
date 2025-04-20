@@ -57,7 +57,7 @@ class UpdateCustomizationOnChildrenInputPortTest {
         coEvery { offerDatastoreOutputPort.findById(storeId, offer.id) } returns Ok(offer)
         coEvery { offerDatastoreOutputPort.update(storeId, offer) } returns Ok(Unit)
         coEvery {
-            productDatastoreOutputPort.getIfNotExists(match { ids -> ids.containsAll(offer.getAllProducts().map { product -> product.id }) })
+            productDatastoreOutputPort.getIfNotExists(storeId, match { ids -> ids.containsAll(offer.getAllProducts().map { product -> product.id }) })
         } returns Ok(emptyList())
 
         val result = updateCustomizationOnChildrenInputPort.execute(storeId, offer.id, option.id, newCustomization)
@@ -68,6 +68,7 @@ class UpdateCustomizationOnChildrenInputPortTest {
             storeDatastoreOutputPort.exists(storeId)
             offerDatastoreOutputPort.findById(storeId, offer.id)
             productDatastoreOutputPort.getIfNotExists(
+                storeId,
                 match { ids -> ids.containsAll(offer.getAllProducts().map { product -> product.id }) }
             )
             offerDatastoreOutputPort.update(storeId, offer)
@@ -183,7 +184,7 @@ class UpdateCustomizationOnChildrenInputPortTest {
         coEvery { storeDatastoreOutputPort.exists(storeId) } returns Ok(true)
         coEvery { offerDatastoreOutputPort.findById(storeId, offer.id) } returns Ok(offer)
         coEvery {
-            productDatastoreOutputPort.getIfNotExists(match { ids -> ids.containsAll(offer.getAllProducts().map { product -> product.id }) })
+            productDatastoreOutputPort.getIfNotExists(storeId, match { ids -> ids.containsAll(offer.getAllProducts().map { product -> product.id }) })
         } returns Ok(newCustomization.options.map { it.product!!.id })
 
         val result = updateCustomizationOnChildrenInputPort.execute(storeId, offer.id, option.id, newCustomization)
@@ -195,6 +196,7 @@ class UpdateCustomizationOnChildrenInputPortTest {
             storeDatastoreOutputPort.exists(storeId)
             offerDatastoreOutputPort.findById(storeId, offer.id)
             productDatastoreOutputPort.getIfNotExists(
+                storeId,
                 match { ids -> ids.containsAll(offer.getAllProducts().map { product -> product.id }) }
             )
         }

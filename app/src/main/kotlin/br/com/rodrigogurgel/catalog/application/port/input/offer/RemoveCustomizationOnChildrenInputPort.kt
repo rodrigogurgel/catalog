@@ -17,10 +17,10 @@ import br.com.rodrigogurgel.catalog.domain.usecase.offer.RemoveCustomizationOnCh
 import br.com.rodrigogurgel.catalog.domain.vo.Id
 import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.andThen
+import com.github.michaelbull.result.coroutines.runSuspendCatching
 import com.github.michaelbull.result.map
 import com.github.michaelbull.result.onFailure
 import com.github.michaelbull.result.onSuccess
-import com.github.michaelbull.result.runCatching
 import com.github.michaelbull.result.toErrorIf
 import com.github.michaelbull.result.toErrorIfNull
 import org.slf4j.LoggerFactory
@@ -68,7 +68,7 @@ class RemoveCustomizationOnChildrenInputPort(
         offer: Offer,
         optionId: Id,
         customizationId: Id
-    ): Result<Offer, Throwable> = runCatching {
+    ): Result<Offer, Throwable> = runSuspendCatching {
         val option = offer.findOptionInChildrenById(optionId)
         option?.removeCustomization(customizationId) ?: throw OptionNotFoundException(optionId)
         offer.validate()

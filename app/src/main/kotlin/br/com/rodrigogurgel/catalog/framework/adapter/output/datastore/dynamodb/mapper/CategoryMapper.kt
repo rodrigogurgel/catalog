@@ -8,19 +8,21 @@ import br.com.rodrigogurgel.catalog.domain.vo.Status
 import br.com.rodrigogurgel.catalog.framework.adapter.output.datastore.dynamodb.model.CategoryModel
 import java.time.Instant
 
-fun Category.asModel(storeId: Id): CategoryModel = CategoryModel(
-    categoryId = id.value,
-    storeId = storeId.value,
-    name = name.value,
-    description = description?.value,
-    status = status.name,
-    createdAt = Instant.now(),
-    updatedAt = Instant.now(),
-)
+object CategoryMapper {
+    fun Category.asModel(storeId: Id): CategoryModel = CategoryModel(
+        categoryId = id.value,
+        storeId = storeId.value,
+        name = name.value,
+        description = description?.value,
+        status = status.name,
+        createdAt = Instant.now(),
+        updatedAt = Instant.now(),
+    )
 
-fun CategoryModel.asEntity(): Category = Category(
-    id = Id(categoryId!!),
-    name = Name(name!!),
-    description = description?.let { Description(it) },
-    status = Status.valueOf(status!!),
-)
+    fun CategoryModel.asEntity(): Category = Category(
+        id = Id(categoryId!!),
+        name = Name(name!!),
+        description = description?.let { Description(it) },
+        status = Status.valueOf(status!!),
+    )
+}

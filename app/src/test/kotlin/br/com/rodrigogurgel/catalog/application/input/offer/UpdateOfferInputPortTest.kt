@@ -38,7 +38,7 @@ class UpdateOfferInputPortTest {
         coEvery { offerDatastoreOutputPort.findById(storeId, offer.id) } returns Ok(offer)
         coEvery { offerDatastoreOutputPort.update(storeId, offer) } returns Ok(Unit)
         coEvery {
-            productDatastoreOutputPort.getIfNotExists(match { ids -> ids.containsAll(offer.getAllProducts().map { product -> product.id }) })
+            productDatastoreOutputPort.getIfNotExists(storeId, match { ids -> ids.containsAll(offer.getAllProducts().map { product -> product.id }) })
         } returns Ok(emptyList())
 
         val result = updateOfferInputPort.execute(storeId, offer)
@@ -49,6 +49,7 @@ class UpdateOfferInputPortTest {
             storeDatastoreOutputPort.exists(storeId)
             offerDatastoreOutputPort.findById(storeId, offer.id)
             productDatastoreOutputPort.getIfNotExists(
+                storeId,
                 match { ids -> ids.containsAll(offer.getAllProducts().map { product -> product.id }) }
             )
             offerDatastoreOutputPort.update(storeId, offer)
@@ -99,7 +100,7 @@ class UpdateOfferInputPortTest {
         coEvery { storeDatastoreOutputPort.exists(storeId) } returns Ok(true)
         coEvery { offerDatastoreOutputPort.findById(storeId, offer.id) } returns Ok(offer)
         coEvery {
-            productDatastoreOutputPort.getIfNotExists(match { ids -> ids.containsAll(offer.getAllProducts().map { product -> product.id }) })
+            productDatastoreOutputPort.getIfNotExists(storeId, match { ids -> ids.containsAll(offer.getAllProducts().map { product -> product.id }) })
         } returns Ok(offer.getAllProducts().map { product -> product.id })
         coEvery { offerDatastoreOutputPort.update(storeId, offer) } returns Ok(Unit)
 
@@ -112,6 +113,7 @@ class UpdateOfferInputPortTest {
             storeDatastoreOutputPort.exists(storeId)
             offerDatastoreOutputPort.findById(storeId, offer.id)
             productDatastoreOutputPort.getIfNotExists(
+                storeId,
                 match { ids -> ids.containsAll(offer.getAllProducts().map { product -> product.id }) }
             )
         }

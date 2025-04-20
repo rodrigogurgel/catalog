@@ -30,7 +30,7 @@ class CreateProductInputPort(
     ) = suspendSpan(action()) {
         storeDatastoreOutputPort.exists(storeId)
             .toErrorIf({ !it }) { StoreNotFoundException(storeId) }
-            .andThen { productDatastoreOutputPort.exists(product.id) }
+            .andThen { productDatastoreOutputPort.exists(storeId, product.id) }
             .toErrorIf({ it }) { ProductAlreadyExistsException(product.id) }
             .andThen { productDatastoreOutputPort.create(storeId, product) }
             .onSuccess { logger.success(action(), STORE_ID to storeId, PRODUCT to product) }

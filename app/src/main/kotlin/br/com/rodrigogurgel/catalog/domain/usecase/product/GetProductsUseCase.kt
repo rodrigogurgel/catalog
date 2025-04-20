@@ -9,6 +9,6 @@ interface GetProductsUseCase : UseCase {
     suspend fun execute(
         storeId: Id,
         limit: Int,
-        offset: Int,
-    ): Result<List<Product>, Throwable>
+        cursor: String?,
+    ): Result<Pair<String?, List<Product>>, Throwable>
 }

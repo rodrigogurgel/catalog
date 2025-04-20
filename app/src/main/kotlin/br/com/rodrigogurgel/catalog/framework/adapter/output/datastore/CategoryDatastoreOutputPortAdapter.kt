@@ -3,11 +3,12 @@ package br.com.rodrigogurgel.catalog.framework.adapter.output.datastore
 import br.com.rodrigogurgel.catalog.application.port.output.datastore.CategoryDatastoreOutputPort
 import br.com.rodrigogurgel.catalog.domain.entity.Category
 import br.com.rodrigogurgel.catalog.domain.vo.Id
-import br.com.rodrigogurgel.catalog.framework.adapter.output.datastore.dynamodb.mapper.asEntity
-import br.com.rodrigogurgel.catalog.framework.adapter.output.datastore.dynamodb.mapper.asModel
+import br.com.rodrigogurgel.catalog.framework.adapter.output.datastore.dynamodb.mapper.CategoryMapper.asEntity
+import br.com.rodrigogurgel.catalog.framework.adapter.output.datastore.dynamodb.mapper.CategoryMapper.asModel
 import br.com.rodrigogurgel.catalog.framework.adapter.output.datastore.dynamodb.repository.CategoryRepository
 import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.map
+import com.github.michaelbull.result.mapCatching
 import org.springframework.stereotype.Component
 
 @Component
@@ -44,7 +45,7 @@ class CategoryDatastoreOutputPortAdapter(
         limit: Int,
         cursor: String?
     ): Result<Pair<String?, List<Category>>, Throwable> = categoryRepository.getCategories(storeId.value, limit, cursor)
-        .map { nextCursorToCategories ->
+        .mapCatching { nextCursorToCategories ->
             val nextCursor = nextCursorToCategories.first
             val categories = nextCursorToCategories.second.map { categoryModel -> categoryModel.asEntity() }
 

@@ -15,10 +15,10 @@ import br.com.rodrigogurgel.catalog.domain.usecase.offer.RemoveCustomizationUseC
 import br.com.rodrigogurgel.catalog.domain.vo.Id
 import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.andThen
+import com.github.michaelbull.result.coroutines.runSuspendCatching
 import com.github.michaelbull.result.map
 import com.github.michaelbull.result.onFailure
 import com.github.michaelbull.result.onSuccess
-import com.github.michaelbull.result.runCatching
 import com.github.michaelbull.result.toErrorIf
 import com.github.michaelbull.result.toErrorIfNull
 import org.slf4j.LoggerFactory
@@ -59,7 +59,7 @@ class RemoveCustomizationInputPort(
             }
     }
 
-    private fun removeCustomization(offer: Offer, customizationId: Id): Result<Offer, Throwable> = runCatching {
+    private fun removeCustomization(offer: Offer, customizationId: Id): Result<Offer, Throwable> = runSuspendCatching {
         offer.removeCustomization(customizationId)
         offer.validate()
     }.map { offer }

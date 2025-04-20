@@ -23,10 +23,10 @@ import br.com.rodrigogurgel.catalog.framework.adapter.input.rest.extensions.fail
 import br.com.rodrigogurgel.catalog.framework.adapter.input.rest.extensions.success
 import com.github.michaelbull.result.andThen
 import com.github.michaelbull.result.coroutines.coroutineBinding
+import com.github.michaelbull.result.coroutines.runSuspendCatching
 import com.github.michaelbull.result.map
 import com.github.michaelbull.result.mapBoth
 import com.github.michaelbull.result.mapCatching
-import com.github.michaelbull.result.runCatching
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
@@ -78,22 +78,20 @@ class ProductController(
     suspend fun fetchPaginatedProducts(
         @RequestParam storeId: UUID,
         @RequestParam(defaultValue = "20", required = false) limit: Int,
-        @RequestParam(defaultValue = "0", required = false) offset: Int,
+        @RequestParam(required = false) cursor: String? = null,
     ): ResponseEntity<ProductPageResponseDTO> = coroutineBinding {
         val total = countProductsUseCase.execute(Id(storeId)).bind()
-        val products = getProductsUseCase.execute(Id(storeId), limit, offset).bind()
+        val nextCursorToProducts = getProductsUseCase.execute(Id(storeId), limit, cursor).bind()
 
-        ProductPageResponseDTO(
-            limit,
-            null,
-            total,
-            products.map { product -> product.asResponse() }
-        )
+        val nextCursor = nextCursorToProducts.first
+        val products = nextCursorToProducts.second.map { it.asResponse() }
+
+        ProductPageResponseDTO(limit, nextCursor, total, products)
     }.mapBoth({
-        logger.responseProduced(STORE_ID to storeId, LIMIT to limit, CURSOR to offset)
+        logger.responseProduced(STORE_ID to storeId, LIMIT to limit, CURSOR to cursor)
         success(it)
     }, {
-        logger.responseProduced(it, STORE_ID to storeId, LIMIT to limit, CURSOR to offset)
+        logger.responseProduced(it, STORE_ID to storeId, LIMIT to limit, CURSOR to cursor)
         failure(it)
     })
 
@@ -118,7 +116,7 @@ class ProductController(
     suspend fun createProduct(
         @RequestParam storeId: UUID,
         @RequestBody productRequestDTO: ProductRequestDTO,
-    ): ResponseEntity<GenericResponseIdDTO> = runCatching {
+    ): ResponseEntity<GenericResponseIdDTO> = runSuspendCatching {
         productRequestDTO.asEntity()
     }.andThen { product ->
         createProductUseCase.execute(Id(storeId), product)
@@ -155,7 +153,7 @@ class ProductController(
         @PathVariable(value = "id") productId: UUID,
         @RequestBody productRequestDTO: ProductRequestDTO,
     ): ResponseEntity<Unit> =
-        runCatching { productRequestDTO.asEntity(productId,) }
+        runSuspendCatching { productRequestDTO.asEntity(productId) }
             .andThen { product ->
                 updateProductUseCase.execute(Id(storeId), product)
             }

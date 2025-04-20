@@ -20,10 +20,10 @@ import br.com.rodrigogurgel.catalog.domain.usecase.offer.AddCustomizationOnChild
 import br.com.rodrigogurgel.catalog.domain.vo.Id
 import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.andThen
+import com.github.michaelbull.result.coroutines.runSuspendCatching
 import com.github.michaelbull.result.map
 import com.github.michaelbull.result.onFailure
 import com.github.michaelbull.result.onSuccess
-import com.github.michaelbull.result.runCatching
 import com.github.michaelbull.result.toErrorIf
 import com.github.michaelbull.result.toErrorIfNull
 import org.slf4j.LoggerFactory
@@ -45,7 +45,7 @@ class AddCustomizationOnChildrenInputPort(
             .toErrorIf({ !it }) { StoreNotFoundException(storeId) }
             .andThen { offerDatastoreOutputPort.findById(storeId, offerId) }
             .toErrorIfNull { OfferNotFoundException(storeId, offerId) }
-            .andThen { addCustomizationOnOption(it, optionId, customization) }
+            .andThen { addCustomizationOnOption(storeId, it, optionId, customization) }
             .andThen { offerDatastoreOutputPort.update(storeId, it) }
             .onSuccess {
                 logger.success(
@@ -69,16 +69,17 @@ class AddCustomizationOnChildrenInputPort(
     }
 
     private suspend fun addCustomizationOnOption(
+        storeId: Id,
         offer: Offer,
         optionId: Id,
         customization: Customization
-    ): Result<Offer, Throwable> = runCatching {
+    ): Result<Offer, Throwable> = runSuspendCatching {
         val option = offer.findOptionInChildrenById(optionId)
         option?.addCustomization(customization) ?: throw OptionNotFoundException(optionId)
         offer.validate()
     }.andThen {
         val productIds = offer.getAllProducts().map { it.id }
-        productDatastoreOutputPort.getIfNotExists(productIds)
+        productDatastoreOutputPort.getIfNotExists(storeId, productIds)
             .toErrorIf({ it.isNotEmpty() }) { ProductsNotFoundException(it) }
     }.map { offer }
 

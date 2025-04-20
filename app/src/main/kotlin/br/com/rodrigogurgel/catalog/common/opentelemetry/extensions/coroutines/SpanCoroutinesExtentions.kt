@@ -1,6 +1,9 @@
 package br.com.rodrigogurgel.catalog.common.opentelemetry.extensions.coroutines
 
 import br.com.rodrigogurgel.catalog.common.opentelemetry.extensions.spanBuilder
+import com.github.michaelbull.result.coroutines.runSuspendCatching
+import com.github.michaelbull.result.getOrThrow
+import com.github.michaelbull.result.onFailure
 import io.opentelemetry.api.trace.Span
 import io.opentelemetry.api.trace.SpanBuilder
 import io.opentelemetry.extension.kotlin.asContextElement
@@ -23,7 +26,7 @@ suspend inline fun <T> suspendSpan(
         .startSpan()
 
     return withContext(span.asContextElement()) {
-        runCatching {
+        runSuspendCatching {
             block(span)
         }.onFailure {
             span.recordException(it)

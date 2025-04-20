@@ -19,10 +19,10 @@ import br.com.rodrigogurgel.catalog.domain.usecase.offer.UpdateCustomizationOnCh
 import br.com.rodrigogurgel.catalog.domain.vo.Id
 import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.andThen
+import com.github.michaelbull.result.coroutines.runSuspendCatching
 import com.github.michaelbull.result.map
 import com.github.michaelbull.result.onFailure
 import com.github.michaelbull.result.onSuccess
-import com.github.michaelbull.result.runCatching
 import com.github.michaelbull.result.toErrorIf
 import com.github.michaelbull.result.toErrorIfNull
 import org.slf4j.LoggerFactory
@@ -44,7 +44,7 @@ class UpdateCustomizationOnChildrenInputPort(
             .toErrorIf({ !it }) { StoreNotFoundException(storeId) }
             .andThen { offerDatastoreOutputPort.findById(storeId, offerId) }
             .toErrorIfNull { OfferNotFoundException(storeId, offerId) }
-            .andThen { updateCustomizationOnOption(it, optionId, customization) }
+            .andThen { updateCustomizationOnOption(storeId, it, optionId, customization) }
             .andThen { offerDatastoreOutputPort.update(storeId, it) }
             .onSuccess {
                 logger.success(
@@ -66,16 +66,17 @@ class UpdateCustomizationOnChildrenInputPort(
     }
 
     private suspend fun updateCustomizationOnOption(
+        storeId: Id,
         offer: Offer,
         optionId: Id,
         customization: Customization
-    ): Result<Offer, Throwable> = runCatching {
+    ): Result<Offer, Throwable> = runSuspendCatching {
         val option = offer.findOptionInChildrenById(optionId) ?: throw OptionNotFoundException(optionId)
         option.updateCustomization(customization)
         offer.validate()
     }.andThen {
         val productIds = offer.getAllProducts().map { it.id }
-        productDatastoreOutputPort.getIfNotExists(productIds)
+        productDatastoreOutputPort.getIfNotExists(storeId, productIds)
             .toErrorIf({ it.isNotEmpty() }) { ProductsNotFoundException(it) }
     }.map { offer }
 
