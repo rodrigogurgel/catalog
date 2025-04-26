@@ -8,5 +8,5 @@ RUN apk --no-cache add curl
 
 COPY --from=build /home/gradle/project/build/libs/*.jar app.jar
 
-EXPOSE 8080 8080
-CMD ["sh", "-c", "java -jar -Dserver.port=$PORT $JAVA_OPTS /app.jar"]
+EXPOSE 8080
+CMD ["sh", "-c", "java -jar $JAVA_OPTS /app.jar"]
