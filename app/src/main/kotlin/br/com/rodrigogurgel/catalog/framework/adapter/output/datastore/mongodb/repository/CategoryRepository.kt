@@ -3,21 +3,23 @@ package br.com.rodrigogurgel.catalog.framework.adapter.output.datastore.mongodb.
 import br.com.rodrigogurgel.catalog.framework.adapter.output.datastore.mongodb.model.CategoryModel
 import br.com.rodrigogurgel.catalog.framework.adapter.output.datastore.mongodb.model.CategoryModelId
 import org.springframework.data.domain.Pageable
-import org.springframework.data.mongodb.repository.MongoRepository
+import org.springframework.data.mongodb.repository.ReactiveMongoRepository
+import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 import java.util.UUID
 
 @Suppress("FunctionNaming")
-interface CategoryRepository : MongoRepository<CategoryModel, CategoryModelId> {
-    fun countByCategoryModelId_StoreId(storeId: UUID): Int
-    fun existsByCategoryModelId_StoreIdAndCategoryModelId_CategoryId(storeId: UUID, categoryId: UUID): Boolean
+interface CategoryRepository : ReactiveMongoRepository<CategoryModel, CategoryModelId> {
+    fun countByCategoryModelId_StoreId(storeId: UUID): Mono<Int>
+    fun existsByCategoryModelId_StoreIdAndCategoryModelId_CategoryId(storeId: UUID, categoryId: UUID): Mono<Boolean>
     fun deleteByCategoryModelId_StoreIdAndCategoryModelId_CategoryId(
         storeId: UUID,
         categoryId: UUID
-    )
+    ): Mono<Unit>
 
-    fun findByCategoryModelId_StoreIdAndCategoryModelId_CategoryId(storeId: UUID, categoryId: UUID): CategoryModel?
+    fun findByCategoryModelId_StoreIdAndCategoryModelId_CategoryId(storeId: UUID, categoryId: UUID): Mono<CategoryModel>
     fun findAllByCategoryModelId_StoreId(
         storeId: UUID,
         pageable: Pageable
-    ): List<CategoryModel>
+    ): Flux<CategoryModel>
 }

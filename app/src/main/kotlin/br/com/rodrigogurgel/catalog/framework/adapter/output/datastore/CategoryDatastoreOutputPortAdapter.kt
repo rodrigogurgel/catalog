@@ -24,6 +24,8 @@ import com.github.michaelbull.result.mapError
 import com.github.michaelbull.result.onFailure
 import com.github.michaelbull.result.onSuccess
 import com.github.michaelbull.result.runCatching
+import kotlinx.coroutines.reactor.awaitSingle
+import kotlinx.coroutines.reactor.awaitSingleOrNull
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
@@ -48,7 +50,7 @@ class CategoryDatastoreOutputPortAdapter(
     override suspend fun countCategories(
         storeId: Id
     ): Result<Int, Throwable> = suspendSpan(COUNT_CATEGORIES) {
-        runCatching { categoryRepository.countByCategoryModelId_StoreId(storeId.value) }
+        runCatching { categoryRepository.countByCategoryModelId_StoreId(storeId.value).awaitSingle() }
     }
         .mapError { DatastoreIntegrationException(it) }
         .onSuccess {
@@ -70,7 +72,7 @@ class CategoryDatastoreOutputPortAdapter(
         storeId: Id,
         category: Category
     ): Result<Unit, Throwable> = suspendSpan(CREATE) {
-        runCatching<Unit> { categoryRepository.insert(category.asModel(storeId)) }
+        runCatching<Unit> { categoryRepository.insert(category.asModel(storeId)).awaitSingle() }
             .mapError { DatastoreIntegrationException(it) }
             .onSuccess {
                 logger.success(
@@ -97,7 +99,7 @@ class CategoryDatastoreOutputPortAdapter(
             categoryRepository.deleteByCategoryModelId_StoreIdAndCategoryModelId_CategoryId(
                 storeId.value,
                 categoryId.value
-            )
+            ).awaitSingle()
         }
             .mapError { DatastoreIntegrationException(it) }
             .onSuccess {
@@ -125,7 +127,7 @@ class CategoryDatastoreOutputPortAdapter(
             categoryRepository.existsByCategoryModelId_StoreIdAndCategoryModelId_CategoryId(
                 storeId.value,
                 categoryId.value
-            )
+            ).awaitSingle()
         }
             .mapError { DatastoreIntegrationException(it) }
             .onSuccess {
@@ -154,7 +156,7 @@ class CategoryDatastoreOutputPortAdapter(
             categoryRepository.findByCategoryModelId_StoreIdAndCategoryModelId_CategoryId(
                 storeId.value,
                 categoryId.value
-            )
+            ).awaitSingleOrNull()
         }
             .mapError { DatastoreIntegrationException(it) }
             .mapCatching { categoryModel -> categoryModel?.asEntity() }
@@ -189,7 +191,7 @@ class CategoryDatastoreOutputPortAdapter(
             categoryRepository.findAllByCategoryModelId_StoreId(
                 storeId.value,
                 pageRequest
-            )
+            ).collectList().awaitSingle()
         }
             .mapError { DatastoreIntegrationException(it) }
             .mapCatching { categories ->
@@ -219,7 +221,7 @@ class CategoryDatastoreOutputPortAdapter(
         storeId: Id,
         category: Category
     ): Result<Unit, Throwable> = suspendSpan(UPDATE) {
-        runCatching<Unit> { categoryRepository.save(category.asModel(storeId)) }
+        runCatching<Unit> { categoryRepository.save(category.asModel(storeId)).awaitSingle() }
             .mapError { DatastoreIntegrationException(it) }
             .onSuccess {
                 logger.success(

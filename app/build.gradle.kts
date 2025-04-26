@@ -68,7 +68,7 @@ dependencies {
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 
     // Mongo DB
-    implementation("org.springframework.boot:spring-boot-starter-data-mongodb")
+    implementation("org.springframework.boot:spring-boot-starter-data-mongodb-reactive")
 
     // Swagger
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:$springDocVersion")

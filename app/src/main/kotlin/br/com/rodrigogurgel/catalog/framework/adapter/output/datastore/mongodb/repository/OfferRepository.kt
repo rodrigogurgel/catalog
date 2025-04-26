@@ -2,21 +2,22 @@ package br.com.rodrigogurgel.catalog.framework.adapter.output.datastore.mongodb.
 
 import br.com.rodrigogurgel.catalog.framework.adapter.output.datastore.mongodb.model.OfferModel
 import br.com.rodrigogurgel.catalog.framework.adapter.output.datastore.mongodb.model.OfferModelId
-import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
-import org.springframework.data.mongodb.repository.MongoRepository
+import org.springframework.data.mongodb.repository.ReactiveMongoRepository
+import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 import java.util.UUID
 
 @Suppress("FunctionNaming")
-interface OfferRepository : MongoRepository<OfferModel, OfferModelId> {
-    fun countByOfferModelId_StoreIdAndOfferModelId_CategoryId(storeId: UUID, categoryId: UUID): Int
-    fun existsByOfferModelId_StoreIdAndOfferModelId_OfferId(storeId: UUID, offerId: UUID): Boolean
-    fun findByOfferModelId_StoreIdAndOfferModelId_OfferId(storeId: UUID, offerId: UUID): OfferModel?
+interface OfferRepository : ReactiveMongoRepository<OfferModel, OfferModelId> {
+    fun countByOfferModelId_StoreIdAndOfferModelId_CategoryId(storeId: UUID, categoryId: UUID): Mono<Int>
+    fun existsByOfferModelId_StoreIdAndOfferModelId_OfferId(storeId: UUID, offerId: UUID): Mono<Boolean>
+    fun findByOfferModelId_StoreIdAndOfferModelId_OfferId(storeId: UUID, offerId: UUID): Mono<OfferModel>
     fun findAllByOfferModelId_StoreIdAndOfferModelId_CategoryId(
         storeId: UUID,
         categoryId: UUID,
         pageable: Pageable
-    ): Page<OfferModel>
+    ): Flux<OfferModel>
 
-    fun deleteByOfferModelId_StoreIdAndOfferModelId_OfferId(storeId: UUID, offerId: UUID)
+    fun deleteByOfferModelId_StoreIdAndOfferModelId_OfferId(storeId: UUID, offerId: UUID): Mono<Unit>
 }

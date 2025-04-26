@@ -27,6 +27,8 @@ import com.github.michaelbull.result.mapError
 import com.github.michaelbull.result.onFailure
 import com.github.michaelbull.result.onSuccess
 import com.github.michaelbull.result.runCatching
+import kotlinx.coroutines.reactor.awaitSingle
+import kotlinx.coroutines.reactor.awaitSingleOrNull
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
@@ -54,7 +56,7 @@ class ProductDatastoreOutputPortAdapter(
 
     override suspend fun countProducts(storeId: Id): Result<Int, Throwable> =
         suspendSpan(COUNT) {
-            runCatching { productRepository.countByProductModelId_StoreId(storeId.value) }
+            runCatching { productRepository.countByProductModelId_StoreId(storeId.value).awaitSingle() }
                 .mapError { DatastoreIntegrationException(it) }
                 .onSuccess {
                     logger.success(
@@ -76,7 +78,7 @@ class ProductDatastoreOutputPortAdapter(
         storeId: Id,
         product: Product
     ): Result<Unit, Throwable> = suspendSpan(CREATE) {
-        runCatching<Unit> { productRepository.insert(product.asModel(storeId)) }
+        runCatching<Unit> { productRepository.insert(product.asModel(storeId)).awaitSingle() }
             .mapError { DatastoreIntegrationException(it) }
             .onSuccess {
                 logger.success(
@@ -100,11 +102,11 @@ class ProductDatastoreOutputPortAdapter(
         storeId: Id,
         productId: Id
     ): Result<Unit, Throwable> = suspendSpan(DELETE) {
-        runCatching {
+        runCatching<Unit> {
             productRepository.deleteByProductModelId_StoreIdAndProductModelId_ProductId(
                 storeId.value,
                 productId.value
-            )
+            ).awaitSingle()
         }
             .mapError { DatastoreIntegrationException(it) }
             .onSuccess {
@@ -132,7 +134,7 @@ class ProductDatastoreOutputPortAdapter(
             productRepository.existsByProductModelId_StoreIdAndProductModelId_ProductId(
                 storeId.value,
                 productId.value
-            )
+            ).awaitSingle()
         }
             .mapError { DatastoreIntegrationException(it) }
             .onSuccess {
@@ -164,7 +166,7 @@ class ProductDatastoreOutputPortAdapter(
             )
         }
             .mapError { DatastoreIntegrationException(it) }
-            .mapCatching { productModel -> productModel?.asEntity() }
+            .mapCatching { productModel -> productModel.awaitSingleOrNull()?.asEntity() }
             .onSuccess {
                 logger.success(
                     FIND_BY_ID,
@@ -189,7 +191,7 @@ class ProductDatastoreOutputPortAdapter(
                 val productModelIds = productIds.map { productId -> ProductModelId(productId.value, storeId.value) }
                 val productIdsInDb =
                     productRepository.findAllByProductModelIdIn(productModelIds)
-                        .map { it.productModelId.productId }
+                        .map { it.productModelId.productId }.collectList().awaitSingle()
                 productIds.filterNot { productId -> productIdsInDb.contains(productId.value) }
             }
                 .mapError { DatastoreIntegrationException(it) }
@@ -221,8 +223,8 @@ class ProductDatastoreOutputPortAdapter(
             val sort = Sort.by(Sort.Direction.ASC, OfferModel::createdAt.name)
             val pageRequest = PageRequest.of(pageNumber, limit, sort)
 
-            val page = productRepository.findAllByProductModelId_StoreId(storeId.value, pageRequest)
-            val products = page.toList().map { productModel -> productModel.asEntity() }
+            val products = productRepository.findAllByProductModelId_StoreId(storeId.value, pageRequest)
+                .collectList().awaitSingle().map { productModel -> productModel.asEntity() }
 
             products
         }
@@ -251,6 +253,7 @@ class ProductDatastoreOutputPortAdapter(
         suspendSpan(PRODUCT_IS_IN_USE) {
             runCatching {
                 productOfferRelationRepository.existsByProductOfferRelationModelId_ProductId(productId.value)
+                    .awaitSingle()
             }
                 .mapError { DatastoreIntegrationException(it) }
                 .onSuccess {
@@ -273,7 +276,7 @@ class ProductDatastoreOutputPortAdapter(
         storeId: Id,
         product: Product
     ): Result<Unit, Throwable> = suspendSpan(UPDATE) {
-        runCatching<Unit> { productRepository.save(product.asModel(storeId)) }
+        runCatching<Unit> { productRepository.save(product.asModel(storeId)).awaitSingle() }
             .mapError { DatastoreIntegrationException(it) }
             .onSuccess {
                 logger.success(

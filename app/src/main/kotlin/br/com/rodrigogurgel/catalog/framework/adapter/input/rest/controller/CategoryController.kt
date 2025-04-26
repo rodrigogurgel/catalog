@@ -1,5 +1,6 @@
 package br.com.rodrigogurgel.catalog.framework.adapter.input.rest.controller
 
+import br.com.rodrigogurgel.catalog.common.dispatcher.controllerDispatcher
 import br.com.rodrigogurgel.catalog.common.logger.extensions.CATEGORY_ID
 import br.com.rodrigogurgel.catalog.common.logger.extensions.CURSOR
 import br.com.rodrigogurgel.catalog.common.logger.extensions.LIMIT
@@ -35,7 +36,7 @@ import com.github.michaelbull.result.mapCatching
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
-import kotlinx.coroutines.slf4j.MDCContext
+import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -84,31 +85,39 @@ class CategoryController(
         @RequestParam storeId: UUID,
         @RequestParam(defaultValue = "20", required = false) limit: Int,
         @RequestParam(required = false) cursor: String? = null,
-    ): ResponseEntity<CategoryPageResponseDTO> = withContext(MDCContext()) {
-        coroutineBinding {
-            val total = countCategoriesUseCase.execute(Id(storeId)).bind()
-            val categories = getCategoriesUseCase.execute(
-                Id(storeId),
-                limit,
-                cursor
-            ).bind()
+    ): ResponseEntity<CategoryPageResponseDTO> =
+        withContext(controllerDispatcher) {
+            coroutineBinding {
+                val total = async { countCategoriesUseCase.execute(Id(storeId)) }
+                val categories = async {
+                    getCategoriesUseCase.execute(
+                        Id(storeId),
+                        limit,
+                        cursor
+                    )
+                }
 
-            val nextCursor = CursorUtils.nextCursor(
-                total = total,
-                limit = limit,
-                cursor = cursor
-            )
+                val nextCursor = CursorUtils.nextCursor(
+                    total = total.await().bind(),
+                    limit = limit,
+                    cursor = cursor
+                )
 
-            CategoryPageResponseDTO(limit, nextCursor, total, categories.map { it.asResponse() })
+                CategoryPageResponseDTO(
+                    limit,
+                    nextCursor,
+                    total.await().bind(),
+                    categories.await().bind().map { it.asResponse() }
+                )
+            }
+                .mapBoth({
+                    logger.responseProduced(STORE_ID to storeId, LIMIT to limit, CURSOR to cursor, RESULT to it)
+                    success(it)
+                }, {
+                    logger.responseProduced(it, STORE_ID to storeId, LIMIT to limit, CURSOR to cursor)
+                    failure(it)
+                })
         }
-            .mapBoth({
-                logger.responseProduced(STORE_ID to storeId, LIMIT to limit, CURSOR to cursor, RESULT to it)
-                success(it)
-            }, {
-                logger.responseProduced(it, STORE_ID to storeId, LIMIT to limit, CURSOR to cursor)
-                failure(it)
-            })
-    }
 
     @Operation(summary = "Get a Category of the Store", description = "Returns 200 if successful")
     @ApiResponses(
@@ -127,7 +136,7 @@ class CategoryController(
     suspend fun getCategoryById(
         @RequestParam storeId: UUID,
         @PathVariable categoryId: UUID,
-    ): ResponseEntity<CategoryResponseDTO> = withContext(MDCContext()) {
+    ): ResponseEntity<CategoryResponseDTO> = withContext(controllerDispatcher) {
         getCategoryUseCase.execute(Id(storeId), Id(categoryId))
             .mapCatching { it.asResponse() }
             .mapBoth({
@@ -157,7 +166,7 @@ class CategoryController(
     suspend fun createCategory(
         @RequestParam storeId: UUID,
         @RequestBody categoryRequestDTO: CategoryRequestDTO,
-    ): ResponseEntity<GenericResponseIdDTO> = withContext(MDCContext()) {
+    ): ResponseEntity<GenericResponseIdDTO> = withContext(controllerDispatcher) {
         runSuspendCatching {
             categoryRequestDTO.asEntity()
         }.andThen { category ->
@@ -191,7 +200,7 @@ class CategoryController(
         @RequestParam storeId: UUID,
         @PathVariable categoryId: UUID,
         @RequestBody categoryRequestDTO: CategoryRequestDTO,
-    ): ResponseEntity<Unit> = withContext(MDCContext()) {
+    ): ResponseEntity<Unit> = withContext(controllerDispatcher) {
         runSuspendCatching {
             categoryRequestDTO.asEntity(categoryId)
         }.andThen { category ->
@@ -222,7 +231,7 @@ class CategoryController(
     suspend fun deleteCategoryById(
         @RequestParam storeId: UUID,
         @PathVariable categoryId: UUID,
-    ): ResponseEntity<Unit> = withContext(MDCContext()) {
+    ): ResponseEntity<Unit> = withContext(controllerDispatcher) {
         deleteCategoryUseCase.execute(Id(storeId), Id(categoryId))
             .mapBoth({
                 logger.responseProduced(STORE_ID to storeId, CATEGORY_ID to categoryId)
@@ -255,18 +264,23 @@ class CategoryController(
         @RequestParam storeId: UUID,
         @RequestParam(defaultValue = "20", required = false) limit: Int,
         @RequestParam(required = false) cursor: String?,
-    ): ResponseEntity<OfferPageResponseDTO> = withContext(MDCContext()) {
+    ): ResponseEntity<OfferPageResponseDTO> = withContext(controllerDispatcher) {
         coroutineBinding {
-            val total = countOffersUseCase.execute(Id(storeId), Id(categoryId)).bind()
-            val offers = getOffersUseCase.execute(Id(storeId), Id(categoryId), limit, cursor).bind()
+            val total = async { countOffersUseCase.execute(Id(storeId), Id(categoryId)) }
+            val offers = async { getOffersUseCase.execute(Id(storeId), Id(categoryId), limit, cursor) }
 
             val nextCursor = CursorUtils.nextCursor(
-                total = total,
+                total = total.await().bind(),
                 limit = limit,
                 cursor = cursor
             )
 
-            OfferPageResponseDTO(limit, nextCursor, total, offers.map { offer -> offer.asResponse() })
+            OfferPageResponseDTO(
+                limit,
+                nextCursor,
+                total.await().bind(),
+                offers.await().bind().map { offer -> offer.asResponse() }
+            )
         }.mapBoth({
             logger.responseProduced(STORE_ID to storeId, CATEGORY_ID to categoryId, RESULT to it)
             success(it)

@@ -1,5 +1,6 @@
 package br.com.rodrigogurgel.catalog.framework.adapter.input.rest.controller
 
+import br.com.rodrigogurgel.catalog.common.dispatcher.controllerDispatcher
 import br.com.rodrigogurgel.catalog.common.logger.extensions.CURSOR
 import br.com.rodrigogurgel.catalog.common.logger.extensions.LIMIT
 import br.com.rodrigogurgel.catalog.common.logger.extensions.PRODUCT
@@ -21,6 +22,7 @@ import br.com.rodrigogurgel.catalog.framework.adapter.input.rest.dto.response.pr
 import br.com.rodrigogurgel.catalog.framework.adapter.input.rest.dto.response.product.ProductResponseDTO
 import br.com.rodrigogurgel.catalog.framework.adapter.input.rest.extensions.failure
 import br.com.rodrigogurgel.catalog.framework.adapter.input.rest.extensions.success
+import br.com.rodrigogurgel.catalog.framework.adapter.output.datastore.utils.CursorUtils
 import com.github.michaelbull.result.andThen
 import com.github.michaelbull.result.coroutines.coroutineBinding
 import com.github.michaelbull.result.coroutines.runSuspendCatching
@@ -30,7 +32,7 @@ import com.github.michaelbull.result.mapCatching
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
-import kotlinx.coroutines.slf4j.MDCContext
+import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -81,12 +83,23 @@ class ProductController(
         @RequestParam storeId: UUID,
         @RequestParam(defaultValue = "20", required = false) limit: Int,
         @RequestParam(required = false) cursor: String? = null,
-    ): ResponseEntity<ProductPageResponseDTO> = withContext(MDCContext()) {
+    ): ResponseEntity<ProductPageResponseDTO> = withContext(controllerDispatcher) {
         coroutineBinding {
-            val total = countProductsUseCase.execute(Id(storeId)).bind()
-            val products = getProductsUseCase.execute(Id(storeId), limit, cursor).bind()
+            val total = async { countProductsUseCase.execute(Id(storeId)) }
+            val products = async { getProductsUseCase.execute(Id(storeId), limit, cursor) }
 
-            ProductPageResponseDTO(limit, cursor, total, products.map { it.asResponse() })
+            val nextCursor = CursorUtils.nextCursor(
+                total = total.await().bind(),
+                limit = limit,
+                cursor = cursor
+            )
+
+            ProductPageResponseDTO(
+                limit,
+                nextCursor,
+                total.await().bind(),
+                products.await().bind().map { it.asResponse() }
+            )
         }.mapBoth({
             logger.responseProduced(STORE_ID to storeId, LIMIT to limit, CURSOR to cursor)
             success(it)
@@ -117,7 +130,7 @@ class ProductController(
     suspend fun createProduct(
         @RequestParam storeId: UUID,
         @RequestBody productRequestDTO: ProductRequestDTO,
-    ): ResponseEntity<GenericResponseIdDTO> = withContext(MDCContext()) {
+    ): ResponseEntity<GenericResponseIdDTO> = withContext(controllerDispatcher) {
         runSuspendCatching {
             productRequestDTO.asEntity()
         }.andThen { product ->
@@ -155,7 +168,7 @@ class ProductController(
         @RequestParam storeId: UUID,
         @PathVariable(value = "id") productId: UUID,
         @RequestBody productRequestDTO: ProductRequestDTO,
-    ): ResponseEntity<Unit> = withContext(MDCContext()) {
+    ): ResponseEntity<Unit> = withContext(controllerDispatcher) {
         runSuspendCatching { productRequestDTO.asEntity(productId) }
             .andThen { product ->
                 updateProductUseCase.execute(Id(storeId), product)
@@ -190,7 +203,7 @@ class ProductController(
     suspend fun getProductById(
         @RequestParam storeId: UUID,
         @PathVariable productId: UUID,
-    ): ResponseEntity<ProductResponseDTO> = withContext(MDCContext()) {
+    ): ResponseEntity<ProductResponseDTO> = withContext(controllerDispatcher) {
         getProductUseCase.execute(Id(storeId), Id(productId))
             .mapCatching { it.asResponse() }
             .mapBoth({
@@ -224,7 +237,7 @@ class ProductController(
     suspend fun deleteProductById(
         @RequestParam storeId: UUID,
         @PathVariable productId: UUID,
-    ): ResponseEntity<Unit> = withContext(MDCContext()) {
+    ): ResponseEntity<Unit> = withContext(controllerDispatcher) {
         deleteProductUseCase.execute(Id(storeId), Id(productId))
             .mapBoth({
                 logger.responseProduced(STORE_ID to storeId, PRODUCT_ID to productId)

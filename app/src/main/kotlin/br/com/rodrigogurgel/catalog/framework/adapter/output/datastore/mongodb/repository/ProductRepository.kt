@@ -2,22 +2,23 @@ package br.com.rodrigogurgel.catalog.framework.adapter.output.datastore.mongodb.
 
 import br.com.rodrigogurgel.catalog.framework.adapter.output.datastore.mongodb.model.ProductModel
 import br.com.rodrigogurgel.catalog.framework.adapter.output.datastore.mongodb.model.ProductModelId
-import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
-import org.springframework.data.mongodb.repository.MongoRepository
+import org.springframework.data.mongodb.repository.ReactiveMongoRepository
+import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 import java.util.UUID
 
 @Suppress("FunctionNaming")
-interface ProductRepository : MongoRepository<ProductModel, ProductModelId> {
-    fun countByProductModelId_StoreId(storeId: UUID): Int
-    fun existsByProductModelId_StoreIdAndProductModelId_ProductId(storeId: UUID, productId: UUID): Boolean
-    fun findByProductModelId_StoreIdAndProductModelId_ProductId(storeId: UUID, productId: UUID): ProductModel?
+interface ProductRepository : ReactiveMongoRepository<ProductModel, ProductModelId> {
+    fun countByProductModelId_StoreId(storeId: UUID): Mono<Int>
+    fun existsByProductModelId_StoreIdAndProductModelId_ProductId(storeId: UUID, productId: UUID): Mono<Boolean>
+    fun findByProductModelId_StoreIdAndProductModelId_ProductId(storeId: UUID, productId: UUID): Mono<ProductModel>
     fun findAllByProductModelId_StoreId(
         storeId: UUID,
         pageable: Pageable
-    ): Page<ProductModel>
+    ): Flux<ProductModel>
 
-    fun findAllByProductModelIdIn(productModelIds: List<ProductModelId>): List<ProductModel>
+    fun findAllByProductModelIdIn(productModelIds: List<ProductModelId>): Flux<ProductModel>
 
-    fun deleteByProductModelId_StoreIdAndProductModelId_ProductId(storeId: UUID, productId: UUID)
+    fun deleteByProductModelId_StoreIdAndProductModelId_ProductId(storeId: UUID, productId: UUID): Mono<Unit>
 }

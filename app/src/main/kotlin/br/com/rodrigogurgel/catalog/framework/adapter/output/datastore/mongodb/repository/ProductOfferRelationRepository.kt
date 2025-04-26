@@ -2,10 +2,12 @@ package br.com.rodrigogurgel.catalog.framework.adapter.output.datastore.mongodb.
 
 import br.com.rodrigogurgel.catalog.framework.adapter.output.datastore.mongodb.model.ProductOfferRelationModel
 import br.com.rodrigogurgel.catalog.framework.adapter.output.datastore.mongodb.model.ProductOfferRelationModelId
-import org.springframework.data.mongodb.repository.MongoRepository
+import org.springframework.data.mongodb.repository.ReactiveMongoRepository
+import reactor.core.publisher.Mono
 import java.util.UUID
 
 @Suppress("FunctionNaming")
-interface ProductOfferRelationRepository : MongoRepository<ProductOfferRelationModel, ProductOfferRelationModelId> {
-    fun existsByProductOfferRelationModelId_ProductId(productId: UUID): Boolean
+interface ProductOfferRelationRepository :
+    ReactiveMongoRepository<ProductOfferRelationModel, ProductOfferRelationModelId> {
+    fun existsByProductOfferRelationModelId_ProductId(productId: UUID): Mono<Boolean>
 }

@@ -29,6 +29,10 @@ import com.github.michaelbull.result.mapError
 import com.github.michaelbull.result.onFailure
 import com.github.michaelbull.result.onSuccess
 import com.github.michaelbull.result.runCatching
+import kotlinx.coroutines.reactive.awaitLast
+import kotlinx.coroutines.reactive.awaitSingle
+import kotlinx.coroutines.reactor.awaitSingle
+import kotlinx.coroutines.reactor.awaitSingleOrNull
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
@@ -60,7 +64,7 @@ class OfferDatastoreOutputPortAdapter(
             offerRepository.countByOfferModelId_StoreIdAndOfferModelId_CategoryId(
                 storeId.value,
                 categoryId.value
-            )
+            ).awaitSingle()
         }
             .mapError { DatastoreIntegrationException(it) }
             .onSuccess {
@@ -87,7 +91,7 @@ class OfferDatastoreOutputPortAdapter(
         offer: Offer
     ): Result<Unit, Throwable> = suspendSpan(CREATE) {
         runCatching<Unit> {
-            offerRepository.insert(offer.asModel(storeId, categoryId))
+            offerRepository.insert(offer.asModel(storeId, categoryId)).awaitSingle()
 
             val productItemRelation =
 
@@ -97,7 +101,7 @@ class OfferDatastoreOutputPortAdapter(
                             ProductOfferRelationModelId(storeId.value, product.id.value, offer.id.value)
                         ProductOfferRelationModel(productOfferRelationModelId)
                     }
-            productOfferRelationRepository.saveAll(productItemRelation)
+            productOfferRelationRepository.saveAll(productItemRelation).awaitSingle()
         }
             .mapError { DatastoreIntegrationException(it) }
             .onSuccess {
@@ -128,7 +132,7 @@ class OfferDatastoreOutputPortAdapter(
             offerRepository.deleteByOfferModelId_StoreIdAndOfferModelId_OfferId(
                 storeId.value,
                 offerId.value
-            )
+            ).awaitSingle()
         }
             .mapError { DatastoreIntegrationException(it) }
             .onSuccess {
@@ -156,7 +160,7 @@ class OfferDatastoreOutputPortAdapter(
             offerRepository.existsByOfferModelId_StoreIdAndOfferModelId_OfferId(
                 storeId.value,
                 offerId.value
-            )
+            ).awaitSingle()
         }
             .mapError { DatastoreIntegrationException(it) }
             .onSuccess {
@@ -185,7 +189,7 @@ class OfferDatastoreOutputPortAdapter(
             val offerModel = offerRepository.findByOfferModelId_StoreIdAndOfferModelId_OfferId(
                 storeId.value,
                 offerId.value
-            )
+            ).awaitSingleOrNull()
 
             offerModel?.let {
                 val productModelIds =
@@ -193,6 +197,7 @@ class OfferDatastoreOutputPortAdapter(
 
                 val products = productRepository
                     .findAllByProductModelIdIn(productModelIds)
+                    .collectList().awaitSingle()
 
                 val productsById = products.associateBy { productModel -> productModel.productModelId.productId }
 
@@ -229,20 +234,21 @@ class OfferDatastoreOutputPortAdapter(
             val sort = Sort.by(Sort.Direction.ASC, OfferModel::createdAt.name)
             val pageRequest = PageRequest.of(pageNumber, limit, sort)
 
-            val page = offerRepository.findAllByOfferModelId_StoreIdAndOfferModelId_CategoryId(
+            val offers = offerRepository.findAllByOfferModelId_StoreIdAndOfferModelId_CategoryId(
                 storeId.value,
                 categoryId.value,
                 pageRequest
-            )
+            ).collectList().awaitSingle()
 
-            val productIds = page.toList().flatMap { offerModel -> offerModel.getProductIds() }
+            val productIds = offers.flatMap { offerModel -> offerModel.getProductIds() }
+
             val productModelIds = productIds.map { productId -> ProductModelId(productId, storeId.value) }
 
-            val products = productRepository.findAllByProductModelIdIn(productModelIds)
+            val products = productRepository.findAllByProductModelIdIn(productModelIds).collectList().awaitSingle()
 
             val productsById = products.associateBy { productModel -> productModel.productModelId.productId }
 
-            page.map { offerModel -> offerModel.asEntity(productsById) }.toList()
+            offers.map { offerModel -> offerModel.asEntity(productsById) }.toList()
         }
             .mapError { DatastoreIntegrationException(it) }
             .onSuccess {
@@ -273,7 +279,7 @@ class OfferDatastoreOutputPortAdapter(
         offer: Offer
     ): Result<Unit, Throwable> = suspendSpan(UPDATE) {
         runCatching<Unit> {
-            offerRepository.save(offer.asModel(storeId, categoryId))
+            offerRepository.save(offer.asModel(storeId, categoryId)).awaitSingle()
             val productItemRelation =
                 offer.getAllProducts()
                     .map { product ->
@@ -281,7 +287,7 @@ class OfferDatastoreOutputPortAdapter(
                             ProductOfferRelationModelId(storeId.value, product.id.value, offer.id.value)
                         ProductOfferRelationModel(productOfferRelationModelId)
                     }
-            productOfferRelationRepository.saveAll(productItemRelation)
+            productOfferRelationRepository.saveAll(productItemRelation).awaitLast()
         }
             .mapError { DatastoreIntegrationException(it) }
             .onSuccess {

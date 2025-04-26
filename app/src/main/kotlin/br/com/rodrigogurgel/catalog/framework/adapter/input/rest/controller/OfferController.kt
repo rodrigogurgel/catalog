@@ -1,5 +1,6 @@
 package br.com.rodrigogurgel.catalog.framework.adapter.input.rest.controller
 
+import br.com.rodrigogurgel.catalog.common.dispatcher.controllerDispatcher
 import br.com.rodrigogurgel.catalog.common.logger.extensions.RESULT
 import br.com.rodrigogurgel.catalog.common.logger.extensions.STORE_ID
 import br.com.rodrigogurgel.catalog.common.logger.extensions.responseProduced
@@ -36,7 +37,6 @@ import com.github.michaelbull.result.mapCatching
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
-import kotlinx.coroutines.slf4j.MDCContext
 import kotlinx.coroutines.withContext
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -92,7 +92,7 @@ class OfferController(
         @RequestParam storeId: UUID,
         @RequestParam categoryId: UUID,
         @RequestBody offerRequestDTO: OfferRequestDTO,
-    ): ResponseEntity<GenericResponseIdDTO> = withContext(MDCContext()) {
+    ): ResponseEntity<GenericResponseIdDTO> = withContext(controllerDispatcher) {
         runSuspendCatching {
             offerRequestDTO.asEntity()
         }.andThen { offer ->
@@ -124,7 +124,7 @@ class OfferController(
     suspend fun getOfferById(
         @RequestParam storeId: UUID,
         @PathVariable offerId: UUID,
-    ): ResponseEntity<OfferResponseDTO> = withContext(MDCContext()) {
+    ): ResponseEntity<OfferResponseDTO> = withContext(controllerDispatcher) {
         getOfferUseCase.execute(Id(storeId), Id(offerId))
             .mapCatching { it.asResponse() }
             .mapBoth({
@@ -154,7 +154,7 @@ class OfferController(
     suspend fun deleteOffer(
         @RequestParam storeId: UUID,
         @PathVariable offerId: UUID,
-    ): ResponseEntity<Unit> = withContext(MDCContext()) {
+    ): ResponseEntity<Unit> = withContext(controllerDispatcher) {
         deleteOfferUseCase.execute(Id(storeId), Id(offerId))
             .mapBoth({
                 logger.responseProduced(STORE_ID to storeId, RESULT to it)
@@ -185,7 +185,7 @@ class OfferController(
         @RequestParam categoryId: UUID,
         @PathVariable offerId: UUID,
         @RequestBody offerRequestDTO: OfferRequestDTO,
-    ): ResponseEntity<Unit> = withContext(MDCContext()) {
+    ): ResponseEntity<Unit> = withContext(controllerDispatcher) {
         runSuspendCatching {
             offerRequestDTO.asEntity(offerId)
         }.andThen { offer ->
@@ -223,7 +223,7 @@ class OfferController(
         @RequestParam categoryId: UUID,
         @PathVariable offerId: UUID,
         @RequestBody customizationRequestDTO: CustomizationRequestDTO,
-    ): ResponseEntity<GenericResponseIdDTO> = withContext(MDCContext()) {
+    ): ResponseEntity<GenericResponseIdDTO> = withContext(controllerDispatcher) {
         runSuspendCatching {
             customizationRequestDTO.asEntity()
         }.andThen { customization ->
@@ -262,7 +262,7 @@ class OfferController(
         @PathVariable offerId: UUID,
         @PathVariable customizationId: UUID,
         @RequestBody updateCustomizationRequestDTO: CustomizationRequestDTO,
-    ): ResponseEntity<Unit> = withContext(MDCContext()) {
+    ): ResponseEntity<Unit> = withContext(controllerDispatcher) {
         runSuspendCatching {
             updateCustomizationRequestDTO.copy(id = customizationId).asEntity()
         }.andThen { customization ->
@@ -304,7 +304,7 @@ class OfferController(
         @RequestParam categoryId: UUID,
         @PathVariable offerId: UUID,
         @PathVariable customizationId: UUID,
-    ): ResponseEntity<Unit> = withContext(MDCContext()) {
+    ): ResponseEntity<Unit> = withContext(controllerDispatcher) {
         removeCustomizationUseCase.execute(
             Id(storeId),
             Id(categoryId),
@@ -344,7 +344,7 @@ class OfferController(
         @PathVariable offerId: UUID,
         @PathVariable optionId: UUID,
         @RequestBody customizationRequestDTO: CustomizationRequestDTO,
-    ): ResponseEntity<GenericResponseIdDTO> = withContext(MDCContext()) {
+    ): ResponseEntity<GenericResponseIdDTO> = withContext(controllerDispatcher) {
         runSuspendCatching {
             customizationRequestDTO.asEntity()
         }.andThen { customization ->
@@ -391,7 +391,7 @@ class OfferController(
         @PathVariable optionId: UUID,
         @PathVariable customizationId: UUID,
         @RequestBody updateCustomizationRequestDTO: CustomizationRequestDTO,
-    ): ResponseEntity<GenericResponseIdDTO> = withContext(MDCContext()) {
+    ): ResponseEntity<GenericResponseIdDTO> = withContext(controllerDispatcher) {
         runSuspendCatching {
             updateCustomizationRequestDTO.copy(customizationId).asEntity()
         }.andThen { customization ->
@@ -435,7 +435,7 @@ class OfferController(
         @PathVariable offerId: UUID,
         @PathVariable optionId: UUID,
         @PathVariable customizationId: UUID,
-    ): ResponseEntity<Unit> = withContext(MDCContext()) {
+    ): ResponseEntity<Unit> = withContext(controllerDispatcher) {
         removeCustomizationOnChildrenUseCase.execute(
             Id(storeId),
             Id(categoryId),
@@ -476,7 +476,7 @@ class OfferController(
         @PathVariable offerId: UUID,
         @PathVariable customizationId: UUID,
         @RequestBody optionRequestDTO: OptionRequestDTO,
-    ): ResponseEntity<GenericResponseIdDTO> = withContext(MDCContext()) {
+    ): ResponseEntity<GenericResponseIdDTO> = withContext(controllerDispatcher) {
         runSuspendCatching {
             optionRequestDTO.asEntity()
         }.andThen { option ->
@@ -521,7 +521,7 @@ class OfferController(
         @PathVariable customizationId: UUID,
         @PathVariable optionId: UUID,
         @RequestBody updateOptionRequestDTO: OptionRequestDTO,
-    ): ResponseEntity<GenericResponseIdDTO> = withContext(MDCContext()) {
+    ): ResponseEntity<GenericResponseIdDTO> = withContext(controllerDispatcher) {
         runSuspendCatching {
             updateOptionRequestDTO.copy(id = optionId).asEntity()
         }.andThen { option ->
@@ -565,7 +565,7 @@ class OfferController(
         @PathVariable offerId: UUID,
         @PathVariable customizationId: UUID,
         @PathVariable optionId: UUID,
-    ): ResponseEntity<Unit> = withContext(MDCContext()) {
+    ): ResponseEntity<Unit> = withContext(controllerDispatcher) {
         removeOptionOnChildrenUseCase.execute(
             Id(storeId),
             Id(categoryId),
