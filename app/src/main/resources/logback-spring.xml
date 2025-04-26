@@ -2,6 +2,7 @@
 <configuration>
     <springProfile name="local | default">
         <springProperty scope="context" name="AppName" source="spring.application.name"/>
+        <springProperty scope="context" name="ENVIRONMENT" source="spring.profiles.active"/>
         <springProperty scope="context" name="LoggingStyle" source="logging.style"/>
 
         <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
@@ -51,6 +52,7 @@
 
     <springProfile name="dev | hom | prod">
         <springProperty scope="context" name="AppName" source="spring.application.name"/>
+        <springProperty scope="context" name="ENVIRONMENT" source="spring.profiles.active"/>
         <property name="LOG_FILE" value="${LOG_FILE:-${LOG_PATH:-${LOG_TEMP:-${java.io.tmpdir:-/tmp}}}/spring.log}"/>
 
         <appender name="STASH" class="ch.qos.logback.core.ConsoleAppender">
