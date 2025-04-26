@@ -2,6 +2,7 @@ package br.com.rodrigogurgel.catalog.framework.adapter.input.rest.dto.mapper.off
 
 import br.com.rodrigogurgel.catalog.domain.entity.Option
 import br.com.rodrigogurgel.catalog.domain.entity.Product
+import br.com.rodrigogurgel.catalog.domain.vo.Description
 import br.com.rodrigogurgel.catalog.domain.vo.Id
 import br.com.rodrigogurgel.catalog.domain.vo.Name
 import br.com.rodrigogurgel.catalog.domain.vo.Price
@@ -17,6 +18,7 @@ object OptionRequestMapper {
         return Option(
             id = optionId,
             name = Name(name),
+            description = description?.let { Description(description) },
             product = product?.let {
                 Product(
                     id = Id(product.id),

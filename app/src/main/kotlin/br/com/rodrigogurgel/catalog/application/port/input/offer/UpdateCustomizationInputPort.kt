@@ -6,6 +6,7 @@ import br.com.rodrigogurgel.catalog.application.exception.StoreNotFoundException
 import br.com.rodrigogurgel.catalog.application.port.output.datastore.OfferDatastoreOutputPort
 import br.com.rodrigogurgel.catalog.application.port.output.datastore.ProductDatastoreOutputPort
 import br.com.rodrigogurgel.catalog.application.port.output.datastore.StoreDatastoreOutputPort
+import br.com.rodrigogurgel.catalog.common.logger.extensions.CATEGORY_ID
 import br.com.rodrigogurgel.catalog.common.logger.extensions.CUSTOMIZATION
 import br.com.rodrigogurgel.catalog.common.logger.extensions.OFFER_ID
 import br.com.rodrigogurgel.catalog.common.logger.extensions.STORE_ID
@@ -34,6 +35,7 @@ class UpdateCustomizationInputPort(
 
     override suspend fun execute(
         storeId: Id,
+        categoryId: Id,
         offerId: Id,
         customization: Customization
     ) = suspendSpan(action()) {
@@ -42,11 +44,12 @@ class UpdateCustomizationInputPort(
             .andThen { offerDatastoreOutputPort.findById(storeId, offerId) }
             .toErrorIfNull { OfferNotFoundException(storeId, offerId) }
             .andThen { updateCustomization(storeId, it, customization) }
-            .andThen { offerDatastoreOutputPort.update(storeId, it) }
+            .andThen { offerDatastoreOutputPort.update(storeId, categoryId, it) }
             .onSuccess {
                 logger.success(
                     action(),
                     STORE_ID to storeId,
+                    CATEGORY_ID to categoryId,
                     OFFER_ID to offerId,
                     CUSTOMIZATION to customization,
                 )
@@ -56,6 +59,7 @@ class UpdateCustomizationInputPort(
                     action(),
                     it,
                     STORE_ID to storeId,
+                    CATEGORY_ID to categoryId,
                     OFFER_ID to offerId,
                     CUSTOMIZATION to customization,
                 )

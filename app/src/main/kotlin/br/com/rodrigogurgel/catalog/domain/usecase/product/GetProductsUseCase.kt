@@ -10,5 +10,5 @@ interface GetProductsUseCase : UseCase {
         storeId: Id,
         limit: Int,
         cursor: String?,
-    ): Result<Pair<String?, List<Product>>, Throwable>
+    ): Result<List<Product>, Throwable>
 }

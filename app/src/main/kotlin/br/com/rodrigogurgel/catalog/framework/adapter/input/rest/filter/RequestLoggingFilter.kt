@@ -6,9 +6,11 @@ import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.slf4j.LoggerFactory
+import org.slf4j.MDC
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import org.springframework.web.filter.OncePerRequestFilter
+import java.util.UUID
 
 @Component
 @Profile("!test")
@@ -31,17 +33,26 @@ class RequestLoggingFilter : OncePerRequestFilter() {
         response: HttpServletResponse,
         filterChain: FilterChain
     ) {
-        val cachedRequest = CachedBodyHttpServletRequest(request)
-        loggerSlf4j.requestReceived(
-            REQUEST_URI to request.requestURI,
-            CONTEXT_PATH to request.contextPath,
-            METHOD to request.method,
-            PARAMETER_MAP to request.parameterMap,
-            HEADERS to request.headerNames.asSequence().map { it to request.getHeader(it) }.toMap(),
-            CONTENT_LENGTH to request.contentLength,
-            QUERY_STRING to request.queryString,
-            BODY to cachedRequest.body(),
-        )
-        filterChain.doFilter(cachedRequest, response)
+        runCatching {
+            val correlationId = request.getHeader("X-Correlation-ID") ?: UUID.randomUUID().toString()
+            val cachedRequest = CachedBodyHttpServletRequest(request)
+
+            MDC.put("correlation_id", correlationId)
+            response.setHeader("X-Correlation-ID", correlationId)
+            loggerSlf4j.requestReceived(
+                REQUEST_URI to request.requestURI,
+                CONTEXT_PATH to request.contextPath,
+                METHOD to request.method,
+                PARAMETER_MAP to request.parameterMap,
+                HEADERS to request.headerNames.asSequence().map { it to request.getHeader(it) }.toMap(),
+                CONTENT_LENGTH to request.contentLength,
+                QUERY_STRING to request.queryString,
+                BODY to cachedRequest.body(),
+            )
+
+            filterChain.doFilter(cachedRequest, response)
+        }.onFailure {
+            MDC.remove("correlation_id")
+        }
     }
 }

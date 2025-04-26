@@ -35,16 +35,16 @@ class GetOffersInputPortTest {
         val storeId = Id()
         val categoryId = Id()
         val limit = 20
-        val offset = 0
+        val cursor: String? = null
         val offers = List(10) {
             mockOffer()
         }
 
         coEvery { storeDatastoreOutputPort.exists(storeId) } returns Ok(true)
         coEvery { categoryDatastoreOutputPort.exists(storeId, categoryId) } returns Ok(true)
-        coEvery { offersDatastoreOutputPort.getOffers(storeId, categoryId, limit, offset) } returns Ok(offers)
+        coEvery { offersDatastoreOutputPort.getOffers(storeId, categoryId, limit, cursor) } returns Ok(offers)
 
-        val result = getOffersInputPort.execute(storeId, categoryId, limit, offset)
+        val result = getOffersInputPort.execute(storeId, categoryId, limit, cursor)
 
         result.isOk.shouldBeTrue()
         result.value shouldBe offers
@@ -52,7 +52,7 @@ class GetOffersInputPortTest {
         coVerifySequence {
             storeDatastoreOutputPort.exists(storeId)
             categoryDatastoreOutputPort.exists(storeId, categoryId)
-            offersDatastoreOutputPort.getOffers(storeId, categoryId, limit, offset)
+            offersDatastoreOutputPort.getOffers(storeId, categoryId, limit, cursor)
         }
     }
 
@@ -61,24 +61,27 @@ class GetOffersInputPortTest {
         val storeId = Id()
         val categoryId = Id()
         val limit = -1
-        val offset = 0
+        val cursor: String? = null
         val offers = List(10) {
             mockOffer()
         }
 
         coEvery { storeDatastoreOutputPort.exists(storeId) } returns Ok(true)
         coEvery { categoryDatastoreOutputPort.exists(storeId, categoryId) } returns Ok(true)
-        coEvery { offersDatastoreOutputPort.getOffers(storeId, categoryId, normalizeLimit(limit), offset) } returns Ok(offers)
+        coEvery {
+            offersDatastoreOutputPort.getOffers(storeId, categoryId, normalizeLimit(limit), cursor)
+        } returns Ok(offers)
 
-        val result = getOffersInputPort.execute(storeId, categoryId, limit, offset)
+        val result = getOffersInputPort.execute(storeId, categoryId, limit, cursor)
 
         result.isOk.shouldBeTrue()
+
         result.value shouldBe offers
 
         coVerifySequence {
             storeDatastoreOutputPort.exists(storeId)
             categoryDatastoreOutputPort.exists(storeId, categoryId)
-            offersDatastoreOutputPort.getOffers(storeId, categoryId, normalizeLimit(limit), offset)
+            offersDatastoreOutputPort.getOffers(storeId, categoryId, normalizeLimit(limit), cursor)
         }
     }
 
@@ -87,24 +90,27 @@ class GetOffersInputPortTest {
         val storeId = Id()
         val categoryId = Id()
         val limit = 10000
-        val offset = 0
+        val cursor: String? = null
         val offers = List(10) {
             mockOffer()
         }
 
         coEvery { storeDatastoreOutputPort.exists(storeId) } returns Ok(true)
         coEvery { categoryDatastoreOutputPort.exists(storeId, categoryId) } returns Ok(true)
-        coEvery { offersDatastoreOutputPort.getOffers(storeId, categoryId, normalizeLimit(limit), offset) } returns Ok(offers)
+        coEvery {
+            offersDatastoreOutputPort.getOffers(storeId, categoryId, normalizeLimit(limit), cursor)
+        } returns Ok(offers)
 
-        val result = getOffersInputPort.execute(storeId, categoryId, limit, offset)
+        val result = getOffersInputPort.execute(storeId, categoryId, limit, cursor)
 
         result.isOk.shouldBeTrue()
+
         result.value shouldBe offers
 
         coVerifySequence {
             storeDatastoreOutputPort.exists(storeId)
             categoryDatastoreOutputPort.exists(storeId, categoryId)
-            offersDatastoreOutputPort.getOffers(storeId, categoryId, normalizeLimit(limit), offset)
+            offersDatastoreOutputPort.getOffers(storeId, categoryId, normalizeLimit(limit), cursor)
         }
     }
 
@@ -113,24 +119,25 @@ class GetOffersInputPortTest {
         val storeId = Id()
         val categoryId = Id()
         val limit = 20
-        val offset = -1
+        val cursor: String? = null
         val offers = List(10) {
             mockOffer()
         }
 
         coEvery { storeDatastoreOutputPort.exists(storeId) } returns Ok(true)
         coEvery { categoryDatastoreOutputPort.exists(storeId, categoryId) } returns Ok(true)
-        coEvery { offersDatastoreOutputPort.getOffers(storeId, categoryId, limit, normalizeLimit(offset)) } returns Ok(offers)
+        coEvery { offersDatastoreOutputPort.getOffers(storeId, categoryId, limit, cursor) } returns Ok(offers)
 
-        val result = getOffersInputPort.execute(storeId, categoryId, limit, offset)
+        val result = getOffersInputPort.execute(storeId, categoryId, limit, cursor)
 
         result.isOk.shouldBeTrue()
+
         result.value shouldBe offers
 
         coVerifySequence {
             storeDatastoreOutputPort.exists(storeId)
             categoryDatastoreOutputPort.exists(storeId, categoryId)
-            offersDatastoreOutputPort.getOffers(storeId, categoryId, limit, normalizeLimit(offset))
+            offersDatastoreOutputPort.getOffers(storeId, categoryId, limit, cursor)
         }
     }
 
@@ -139,11 +146,11 @@ class GetOffersInputPortTest {
         val storeId = Id()
         val categoryId = Id()
         val limit = 20
-        val offset = 0
+        val cursor: String? = null
 
         coEvery { storeDatastoreOutputPort.exists(storeId) } returns Ok(false)
 
-        val result = getOffersInputPort.execute(storeId, categoryId, limit, offset)
+        val result = getOffersInputPort.execute(storeId, categoryId, limit, cursor)
 
         result.isErr.shouldBeTrue()
         result.error shouldBe StoreNotFoundException(storeId)
@@ -158,12 +165,12 @@ class GetOffersInputPortTest {
         val storeId = Id()
         val categoryId = Id()
         val limit = 20
-        val offset = 0
+        val cursor: String? = null
 
         coEvery { storeDatastoreOutputPort.exists(storeId) } returns Ok(true)
         coEvery { categoryDatastoreOutputPort.exists(storeId, categoryId) } returns Ok(false)
 
-        val result = getOffersInputPort.execute(storeId, categoryId, limit, offset)
+        val result = getOffersInputPort.execute(storeId, categoryId, limit, cursor)
 
         result.isErr.shouldBeTrue()
         result.error shouldBe CategoryNotFoundException(storeId, categoryId)

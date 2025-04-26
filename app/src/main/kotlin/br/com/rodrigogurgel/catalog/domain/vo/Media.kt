@@ -8,7 +8,7 @@ import java.net.URL
  *
  * @throws MalformedURLException if the [url] was blank or isn't a valid URL.
  */
-class Media(
+data class Media(
     val url: String,
     val type: MediaType
 ) {

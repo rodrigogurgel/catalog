@@ -1,5 +1,6 @@
 package br.com.rodrigogurgel.catalog.framework.adapter.input.rest.dto.request.offer
 
+import br.com.rodrigogurgel.catalog.domain.vo.Description
 import br.com.rodrigogurgel.catalog.domain.vo.Name
 import br.com.rodrigogurgel.catalog.domain.vo.Status
 import br.com.rodrigogurgel.catalog.framework.adapter.input.rest.dto.request.common.GenericRequestIdDTO
@@ -18,6 +19,15 @@ data class OfferRequestDTO(
         required = true
     )
     val name: String,
+    @field:Schema(
+        description = "A detailed description of the customization.",
+        example = "Adds extra cheese to your meal.",
+        type = "string",
+        minLength = Description.MIN_LENGTH,
+        maxLength = Description.MAX_LENGTH,
+        required = false
+    )
+    val description: String?,
     @field:Schema(
         description = "The unique identifier of the product associated with this offer.",
         required = false

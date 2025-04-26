@@ -7,7 +7,6 @@ import br.com.rodrigogurgel.catalog.application.port.output.datastore.StoreDatas
 import br.com.rodrigogurgel.catalog.application.utils.normalizeLimit
 import br.com.rodrigogurgel.catalog.domain.vo.Id
 import br.com.rodrigogurgel.catalog.fixture.mock.mockCategory
-import br.com.rodrigogurgel.catalog.framework.adapter.output.datastore.dynamodb.utils.CursorUtils
 import com.github.michaelbull.result.Ok
 import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.shouldBe
@@ -16,8 +15,6 @@ import io.mockk.coVerifySequence
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
-import software.amazon.awssdk.services.dynamodb.model.AttributeValue
-import java.time.Instant
 
 class GetCategoriesInputPortTest {
     private val storeDatastoreOutputPort: StoreDatastoreOutputPort = mockk()
@@ -37,12 +34,12 @@ class GetCategoriesInputPortTest {
         val cursor: String? = null
 
         coEvery { storeDatastoreOutputPort.exists(storeId) } returns Ok(true)
-        coEvery { categoryDatastoreOutputPort.getCategories(storeId, limit, cursor) } returns Ok(null to categories)
+        coEvery { categoryDatastoreOutputPort.getCategories(storeId, limit, cursor) } returns Ok(categories)
 
         val result = getCategoriesInputPort.execute(storeId, limit, cursor)
 
         result.isOk.shouldBeTrue()
-        result.value shouldBe (null to categories)
+        result.value shouldBe categories
 
         coVerifySequence {
             storeDatastoreOutputPort.exists(storeId)
@@ -60,12 +57,12 @@ class GetCategoriesInputPortTest {
         coEvery { storeDatastoreOutputPort.exists(storeId) } returns Ok(true)
         coEvery {
             categoryDatastoreOutputPort.getCategories(storeId, normalizeLimit(limit), cursor)
-        } returns Ok(null to categories)
+        } returns Ok(categories)
 
         val result = getCategoriesInputPort.execute(storeId, limit, cursor)
 
         result.isOk.shouldBeTrue()
-        result.value shouldBe (null to categories)
+        result.value shouldBe categories
 
         coVerifySequence {
             storeDatastoreOutputPort.exists(storeId)
@@ -83,12 +80,12 @@ class GetCategoriesInputPortTest {
         coEvery { storeDatastoreOutputPort.exists(storeId) } returns Ok(true)
         coEvery {
             categoryDatastoreOutputPort.getCategories(storeId, normalizeLimit(limit), cursor)
-        } returns Ok(cursor to categories)
+        } returns Ok(categories)
 
         val result = getCategoriesInputPort.execute(storeId, limit, cursor)
 
         result.isOk.shouldBeTrue()
-        result.value shouldBe (null to categories)
+        result.value shouldBe categories
 
         coVerifySequence {
             storeDatastoreOutputPort.exists(storeId)
@@ -101,21 +98,15 @@ class GetCategoriesInputPortTest {
         val storeId = Id()
         val categories = listOf(mockCategory(), mockCategory())
         val limit = 20
-        val cursor = CursorUtils.encode(
-            mapOf(
-                "store_id" to AttributeValue.builder().s(storeId.value.toString()).build(),
-                "created_at" to AttributeValue.builder().s(Instant.now().toString()).build(),
-                "category_id" to AttributeValue.builder().s(categories.last().id.value.toString()).build(),
-            )
-        )
+        val cursor = "test"
 
         coEvery { storeDatastoreOutputPort.exists(storeId) } returns Ok(true)
-        coEvery { categoryDatastoreOutputPort.getCategories(storeId, limit, cursor) } returns Ok(cursor to categories)
+        coEvery { categoryDatastoreOutputPort.getCategories(storeId, limit, cursor) } returns Ok(categories)
 
         val result = getCategoriesInputPort.execute(storeId, limit, cursor)
 
         result.isOk.shouldBeTrue()
-        result.value shouldBe (cursor to categories)
+        result.value shouldBe categories
 
         coVerifySequence {
             storeDatastoreOutputPort.exists(storeId)
@@ -131,7 +122,7 @@ class GetCategoriesInputPortTest {
         val cursor: String? = null
 
         coEvery { storeDatastoreOutputPort.exists(storeId) } returns Ok(false)
-        coEvery { categoryDatastoreOutputPort.getCategories(storeId, limit, cursor) } returns Ok(cursor to categories)
+        coEvery { categoryDatastoreOutputPort.getCategories(storeId, limit, cursor) } returns Ok(categories)
 
         val result = getCategoriesInputPort.execute(storeId, limit, cursor)
 

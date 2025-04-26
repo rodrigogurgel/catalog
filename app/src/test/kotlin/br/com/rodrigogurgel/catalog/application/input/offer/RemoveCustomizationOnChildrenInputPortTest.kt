@@ -33,6 +33,7 @@ class RemoveCustomizationOnChildrenInputPortTest {
     @Test
     fun `Should successfully remove a customization on children`() = runTest {
         val storeId = Id()
+        val categoryId = Id()
         val customization = mockCustomization()
         val option = mockOptionWith {
             customizations = mutableListOf(customization)
@@ -47,22 +48,29 @@ class RemoveCustomizationOnChildrenInputPortTest {
 
         coEvery { storeDatastoreOutputPort.exists(storeId) } returns Ok(true)
         coEvery { offerDatastoreOutputPort.findById(storeId, offer.id) } returns Ok(offer)
-        coEvery { offerDatastoreOutputPort.update(storeId, offer) } returns Ok(Unit)
+        coEvery { offerDatastoreOutputPort.update(storeId, categoryId, offer) } returns Ok(Unit)
 
-        val result = removeCustomizationOnChildrenInputPort.execute(storeId, offer.id, option.id, customization.id)
+        val result = removeCustomizationOnChildrenInputPort.execute(
+            storeId,
+            categoryId,
+            offer.id,
+            option.id,
+            customization.id
+        )
 
         result.isOk.shouldBeTrue()
 
         coVerifySequence {
             storeDatastoreOutputPort.exists(storeId)
             offerDatastoreOutputPort.findById(storeId, offer.id)
-            offerDatastoreOutputPort.update(storeId, offer)
+            offerDatastoreOutputPort.update(storeId, categoryId, offer)
         }
     }
 
     @Test
     fun `Should fail to remove a customization on children when the parent option does not exist`() = runTest {
         val storeId = Id()
+        val categoryId = Id()
         val customization = mockCustomization()
         val option = mockOptionWith {
             customizations = mutableListOf(customization)
@@ -73,7 +81,13 @@ class RemoveCustomizationOnChildrenInputPortTest {
         coEvery { storeDatastoreOutputPort.exists(storeId) } returns Ok(true)
         coEvery { offerDatastoreOutputPort.findById(storeId, offer.id) } returns Ok(offer)
 
-        val result = removeCustomizationOnChildrenInputPort.execute(storeId, offer.id, option.id, customization.id)
+        val result = removeCustomizationOnChildrenInputPort.execute(
+            storeId,
+            categoryId,
+            offer.id,
+            option.id,
+            customization.id
+        )
 
         result.isErr.shouldBeTrue()
         result.error shouldBe OptionNotFoundException(option.id)
@@ -87,6 +101,7 @@ class RemoveCustomizationOnChildrenInputPortTest {
     @Test
     fun `Should fail to remove a customization from a child when the store does not exist`() = runTest {
         val storeId = Id()
+        val categoryId = Id()
         val customization = mockCustomization()
         val option = mockOptionWith {
             customizations = mutableListOf(customization)
@@ -101,7 +116,13 @@ class RemoveCustomizationOnChildrenInputPortTest {
 
         coEvery { storeDatastoreOutputPort.exists(storeId) } returns Ok(false)
 
-        val result = removeCustomizationOnChildrenInputPort.execute(storeId, offer.id, option.id, customization.id)
+        val result = removeCustomizationOnChildrenInputPort.execute(
+            storeId,
+            categoryId,
+            offer.id,
+            option.id,
+            customization.id
+        )
 
         result.isErr.shouldBeTrue()
         result.error shouldBe StoreNotFoundException(storeId)
@@ -114,6 +135,7 @@ class RemoveCustomizationOnChildrenInputPortTest {
     @Test
     fun `Should fail to remove a customization from a child when the offer does not exist`() = runTest {
         val storeId = Id()
+        val categoryId = Id()
         val customization = mockCustomization()
         val option = mockOptionWith {
             customizations = mutableListOf(customization)
@@ -129,7 +151,13 @@ class RemoveCustomizationOnChildrenInputPortTest {
         coEvery { storeDatastoreOutputPort.exists(storeId) } returns Ok(true)
         coEvery { offerDatastoreOutputPort.findById(storeId, offer.id) } returns Ok(null)
 
-        val result = removeCustomizationOnChildrenInputPort.execute(storeId, offer.id, option.id, customization.id)
+        val result = removeCustomizationOnChildrenInputPort.execute(
+            storeId,
+            categoryId,
+            offer.id,
+            option.id,
+            customization.id
+        )
 
         result.isErr.shouldBeTrue()
         result.error shouldBe OfferNotFoundException(storeId, offer.id)

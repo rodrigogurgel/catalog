@@ -38,7 +38,6 @@ fun Logger.failure(action: String, throwable: Throwable, vararg content: Pair<St
 
 fun Logger.requestReceived(vararg content: Pair<String, Any?>) {
     val marker = buildMarker(CONTENT to mapOf(*content))
-    Long.MAX_VALUE
     info(marker, "Request received.")
 }
 

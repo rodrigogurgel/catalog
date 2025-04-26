@@ -1,3 +1,39 @@
 spring:
   application:
     name: catalog
+  data:
+    mongodb:
+      uri: ${MONGO_DB_URI}
+
+springdoc:
+  swagger-ui:
+    layout: BaseLayout
+  default-produces-media-type: application/json
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,refresh,info,metrics,prometheus
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+  endpoint:
+    health:
+      show-details: never
+      probes:
+        enabled: true
+      group:
+        liveness:
+          include: livenessState
+  health:
+    db:
+      enabled: true
+    readiness-state:
+      enabled: true
+    liveness-state:
+      enabled: true
+
+logging:
+  style: ${LOG_STYLE:CONSOLE} # Switch between CONSOLE (Default spring format) and STASH (JSON format)

@@ -5,5 +5,5 @@ import br.com.rodrigogurgel.catalog.domain.vo.Id
 import com.github.michaelbull.result.Result
 
 interface CountCategoriesUseCase : UseCase {
-    suspend fun execute(storeId: Id): Result<Long, Throwable>
+    suspend fun execute(storeId: Id): Result<Int, Throwable>
 }

@@ -43,7 +43,7 @@ class CreateOfferInputPort(
             .toErrorIf({ !it }) { StoreNotFoundException(storeId) }
             .andThen { categoryDatastoreOutputPort.exists(storeId, categoryId) }
             .toErrorIf({ !it }) { CategoryNotFoundException(storeId, categoryId) }
-            .andThen { offerDatastoreOutputPort.exists(offer.id) }
+            .andThen { offerDatastoreOutputPort.exists(storeId, offer.id) }
             .toErrorIf({ it }) { OfferAlreadyExistsException(offer.id) }
             .andThen { validateOffer(storeId, offer) }
             .andThen { offerDatastoreOutputPort.create(storeId, categoryId, offer) }

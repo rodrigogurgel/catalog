@@ -25,6 +25,7 @@ import br.com.rodrigogurgel.catalog.framework.adapter.input.rest.dto.response.co
 import br.com.rodrigogurgel.catalog.framework.adapter.input.rest.dto.response.offer.OfferPageResponseDTO
 import br.com.rodrigogurgel.catalog.framework.adapter.input.rest.extensions.failure
 import br.com.rodrigogurgel.catalog.framework.adapter.input.rest.extensions.success
+import br.com.rodrigogurgel.catalog.framework.adapter.output.datastore.utils.CursorUtils
 import com.github.michaelbull.result.andThen
 import com.github.michaelbull.result.coroutines.coroutineBinding
 import com.github.michaelbull.result.coroutines.runSuspendCatching
@@ -34,6 +35,8 @@ import com.github.michaelbull.result.mapCatching
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
+import kotlinx.coroutines.slf4j.MDCContext
+import kotlinx.coroutines.withContext
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
@@ -81,25 +84,31 @@ class CategoryController(
         @RequestParam storeId: UUID,
         @RequestParam(defaultValue = "20", required = false) limit: Int,
         @RequestParam(required = false) cursor: String? = null,
-    ): ResponseEntity<CategoryPageResponseDTO> = coroutineBinding {
-        val total = countCategoriesUseCase.execute(Id(storeId)).bind()
-        val nextCursorToCategories = getCategoriesUseCase.execute(
-            Id(storeId),
-            limit,
-            cursor
-        ).bind()
+    ): ResponseEntity<CategoryPageResponseDTO> = withContext(MDCContext()) {
+        coroutineBinding {
+            val total = countCategoriesUseCase.execute(Id(storeId)).bind()
+            val categories = getCategoriesUseCase.execute(
+                Id(storeId),
+                limit,
+                cursor
+            ).bind()
 
-        val nextCursor = nextCursorToCategories.first
-        val categories = nextCursorToCategories.second.map { it.asResponse() }
+            val nextCursor = CursorUtils.nextCursor(
+                total = total,
+                limit = limit,
+                cursor = cursor
+            )
 
-        CategoryPageResponseDTO(limit, nextCursor, total, categories)
-    }.mapBoth({
-        logger.responseProduced(STORE_ID to storeId, LIMIT to limit, CURSOR to cursor, RESULT to it)
-        success<CategoryPageResponseDTO>(it)
-    }, {
-        logger.responseProduced(it, STORE_ID to storeId, LIMIT to limit, CURSOR to cursor)
-        failure(it)
-    })
+            CategoryPageResponseDTO(limit, nextCursor, total, categories.map { it.asResponse() })
+        }
+            .mapBoth({
+                logger.responseProduced(STORE_ID to storeId, LIMIT to limit, CURSOR to cursor, RESULT to it)
+                success(it)
+            }, {
+                logger.responseProduced(it, STORE_ID to storeId, LIMIT to limit, CURSOR to cursor)
+                failure(it)
+            })
+    }
 
     @Operation(summary = "Get a Category of the Store", description = "Returns 200 if successful")
     @ApiResponses(
@@ -118,15 +127,17 @@ class CategoryController(
     suspend fun getCategoryById(
         @RequestParam storeId: UUID,
         @PathVariable categoryId: UUID,
-    ): ResponseEntity<CategoryResponseDTO> = getCategoryUseCase.execute(Id(storeId), Id(categoryId))
-        .mapCatching { it.asResponse() }
-        .mapBoth({
-            logger.responseProduced(STORE_ID to storeId, CATEGORY_ID to categoryId, RESULT to it)
-            success(it)
-        }, {
-            logger.responseProduced(it, STORE_ID to storeId, CATEGORY_ID to categoryId)
-            failure(it)
-        })
+    ): ResponseEntity<CategoryResponseDTO> = withContext(MDCContext()) {
+        getCategoryUseCase.execute(Id(storeId), Id(categoryId))
+            .mapCatching { it.asResponse() }
+            .mapBoth({
+                logger.responseProduced(STORE_ID to storeId, CATEGORY_ID to categoryId, RESULT to it)
+                success(it)
+            }, {
+                logger.responseProduced(it, STORE_ID to storeId, CATEGORY_ID to categoryId)
+                failure(it)
+            })
+    }
 
     @Operation(summary = "Create a Category in the Store", description = "Returns 201 if successful")
     @ApiResponses(
@@ -146,18 +157,20 @@ class CategoryController(
     suspend fun createCategory(
         @RequestParam storeId: UUID,
         @RequestBody categoryRequestDTO: CategoryRequestDTO,
-    ): ResponseEntity<GenericResponseIdDTO> = runSuspendCatching {
-        categoryRequestDTO.asEntity()
-    }.andThen { category ->
-        createCategoryUseCase.execute(Id(storeId), category)
-            .map { GenericResponseIdDTO(category.id.value.toString()) }
-    }.mapBoth({
-        logger.responseProduced(STORE_ID to storeId, RESULT to it)
-        success(it, HttpStatus.CREATED)
-    }, {
-        logger.responseProduced(it, STORE_ID to storeId)
-        failure(it)
-    })
+    ): ResponseEntity<GenericResponseIdDTO> = withContext(MDCContext()) {
+        runSuspendCatching {
+            categoryRequestDTO.asEntity()
+        }.andThen { category ->
+            createCategoryUseCase.execute(Id(storeId), category)
+                .map { GenericResponseIdDTO(category.id.value.toString()) }
+        }.mapBoth({
+            logger.responseProduced(STORE_ID to storeId, RESULT to it)
+            success(it, HttpStatus.CREATED)
+        }, {
+            logger.responseProduced(it, STORE_ID to storeId)
+            failure(it)
+        })
+    }
 
     @Operation(summary = "Update a Category in the Store", description = "Returns 200 if successful")
     @ApiResponses(
@@ -178,17 +191,19 @@ class CategoryController(
         @RequestParam storeId: UUID,
         @PathVariable categoryId: UUID,
         @RequestBody categoryRequestDTO: CategoryRequestDTO,
-    ): ResponseEntity<Unit> = runSuspendCatching {
-        categoryRequestDTO.asEntity(categoryId)
-    }.andThen { category ->
-        updateCategoryUseCase.execute(Id(storeId), category)
-    }.mapBoth({
-        logger.responseProduced(STORE_ID to storeId, CATEGORY_ID to categoryId, RESULT to it)
-        success(it)
-    }, {
-        logger.responseProduced(it, STORE_ID to storeId, CATEGORY_ID to categoryId)
-        failure(it)
-    })
+    ): ResponseEntity<Unit> = withContext(MDCContext()) {
+        runSuspendCatching {
+            categoryRequestDTO.asEntity(categoryId)
+        }.andThen { category ->
+            updateCategoryUseCase.execute(Id(storeId), category)
+        }.mapBoth({
+            logger.responseProduced(STORE_ID to storeId, CATEGORY_ID to categoryId, RESULT to it)
+            success(it)
+        }, {
+            logger.responseProduced(it, STORE_ID to storeId, CATEGORY_ID to categoryId)
+            failure(it)
+        })
+    }
 
     @Operation(summary = "Delete a Category in the Store", description = "Returns 204 if successful")
     @ApiResponses(
@@ -207,14 +222,16 @@ class CategoryController(
     suspend fun deleteCategoryById(
         @RequestParam storeId: UUID,
         @PathVariable categoryId: UUID,
-    ): ResponseEntity<Unit> = deleteCategoryUseCase.execute(Id(storeId), Id(categoryId))
-        .mapBoth({
-            logger.responseProduced(STORE_ID to storeId, CATEGORY_ID to categoryId)
-            success(it, HttpStatus.NO_CONTENT)
-        }, {
-            logger.responseProduced(it, STORE_ID to storeId, CATEGORY_ID to categoryId)
-            failure(it)
-        })
+    ): ResponseEntity<Unit> = withContext(MDCContext()) {
+        deleteCategoryUseCase.execute(Id(storeId), Id(categoryId))
+            .mapBoth({
+                logger.responseProduced(STORE_ID to storeId, CATEGORY_ID to categoryId)
+                success(it, HttpStatus.NO_CONTENT)
+            }, {
+                logger.responseProduced(it, STORE_ID to storeId, CATEGORY_ID to categoryId)
+                failure(it)
+            })
+    }
 
     @Operation(
         summary = "Get a page of Offers from the Category in the Store",
@@ -237,16 +254,25 @@ class CategoryController(
         @PathVariable categoryId: UUID,
         @RequestParam storeId: UUID,
         @RequestParam(defaultValue = "20", required = false) limit: Int,
-        @RequestParam(defaultValue = "0", required = false) offset: Int,
-    ): ResponseEntity<OfferPageResponseDTO> = coroutineBinding {
-        val total = countOffersUseCase.execute(Id(storeId), Id(categoryId)).bind()
-        val offers = getOffersUseCase.execute(Id(storeId), Id(categoryId), limit, offset).bind()
-        OfferPageResponseDTO(limit, null, total, offers.map { offer -> offer.asResponse() })
-    }.mapBoth({
-        logger.responseProduced(STORE_ID to storeId, CATEGORY_ID to categoryId, RESULT to it)
-        success(it)
-    }, {
-        logger.responseProduced(it, STORE_ID to storeId, CATEGORY_ID to categoryId)
-        failure(it)
-    })
+        @RequestParam(required = false) cursor: String?,
+    ): ResponseEntity<OfferPageResponseDTO> = withContext(MDCContext()) {
+        coroutineBinding {
+            val total = countOffersUseCase.execute(Id(storeId), Id(categoryId)).bind()
+            val offers = getOffersUseCase.execute(Id(storeId), Id(categoryId), limit, cursor).bind()
+
+            val nextCursor = CursorUtils.nextCursor(
+                total = total,
+                limit = limit,
+                cursor = cursor
+            )
+
+            OfferPageResponseDTO(limit, nextCursor, total, offers.map { offer -> offer.asResponse() })
+        }.mapBoth({
+            logger.responseProduced(STORE_ID to storeId, CATEGORY_ID to categoryId, RESULT to it)
+            success(it)
+        }, {
+            logger.responseProduced(it, STORE_ID to storeId, CATEGORY_ID to categoryId)
+            failure(it)
+        })
+    }
 }

@@ -32,17 +32,18 @@ class AddCustomizationInputPortTest {
     @Test
     fun `Should successfully add a customization`() = runTest {
         val storeId = Id()
+        val categoryId = Id()
         val offer = mockOffer()
         val customization = mockCustomization()
 
         coEvery { storeDatastoreOutputPort.exists(storeId) } returns Ok(true)
         coEvery { offerDatastoreOutputPort.findById(storeId, offer.id) } returns Ok(offer)
-        coEvery { offerDatastoreOutputPort.update(storeId, offer) } returns Ok(Unit)
+        coEvery { offerDatastoreOutputPort.update(storeId, categoryId, offer) } returns Ok(Unit)
         coEvery {
             productDatastoreOutputPort.getIfNotExists(storeId, match { ids -> ids.containsAll(offer.getAllProducts().map { product -> product.id }) })
         } returns Ok(emptyList())
 
-        val result = addCustomizationInput.execute(storeId, offer.id, customization)
+        val result = addCustomizationInput.execute(storeId, categoryId, offer.id, customization)
 
         result.isOk.shouldBeTrue()
 
@@ -53,19 +54,20 @@ class AddCustomizationInputPortTest {
                 storeId,
                 match { ids -> ids.containsAll(offer.getAllProducts().map { product -> product.id }) }
             )
-            offerDatastoreOutputPort.update(storeId, offer)
+            offerDatastoreOutputPort.update(storeId, categoryId, offer)
         }
     }
 
     @Test
     fun `Should fail to add a customization when the store does not exist`() = runTest {
         val storeId = Id()
+        val categoryId = Id()
         val offer = mockOffer()
         val customization = mockCustomization()
 
         coEvery { storeDatastoreOutputPort.exists(storeId) } returns Ok(false)
 
-        val result = addCustomizationInput.execute(storeId, offer.id, customization)
+        val result = addCustomizationInput.execute(storeId, categoryId, offer.id, customization)
 
         result.isErr.shouldBeTrue()
         result.error shouldBe StoreNotFoundException(storeId)
@@ -78,6 +80,7 @@ class AddCustomizationInputPortTest {
     @Test
     fun `Should fail to add a customization when the product does not exist`() = runTest {
         val storeId = Id()
+        val categoryId = Id()
         val offer = mockOffer()
         val customization = mockCustomization()
 
@@ -95,7 +98,7 @@ class AddCustomizationInputPortTest {
             )
         } returns Ok(customization.options.mapNotNull { it.product?.id })
 
-        val result = addCustomizationInput.execute(storeId, offer.id, customization)
+        val result = addCustomizationInput.execute(storeId, categoryId, offer.id, customization)
 
         result.isErr.shouldBeTrue()
         result.error shouldBe ProductsNotFoundException(customization.options.mapNotNull { it.product?.id })

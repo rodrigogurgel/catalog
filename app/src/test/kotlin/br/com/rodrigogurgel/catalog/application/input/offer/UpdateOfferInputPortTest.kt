@@ -32,16 +32,17 @@ class UpdateOfferInputPortTest {
     @Test
     fun `Should successfully update an offer`() = runTest {
         val storeId = Id()
+        val categoryId = Id()
         val offer = mockOffer()
 
         coEvery { storeDatastoreOutputPort.exists(storeId) } returns Ok(true)
         coEvery { offerDatastoreOutputPort.findById(storeId, offer.id) } returns Ok(offer)
-        coEvery { offerDatastoreOutputPort.update(storeId, offer) } returns Ok(Unit)
+        coEvery { offerDatastoreOutputPort.update(storeId, categoryId, offer) } returns Ok(Unit)
         coEvery {
             productDatastoreOutputPort.getIfNotExists(storeId, match { ids -> ids.containsAll(offer.getAllProducts().map { product -> product.id }) })
         } returns Ok(emptyList())
 
-        val result = updateOfferInputPort.execute(storeId, offer)
+        val result = updateOfferInputPort.execute(storeId, categoryId, offer)
 
         result.isOk.shouldBeTrue()
 
@@ -52,18 +53,19 @@ class UpdateOfferInputPortTest {
                 storeId,
                 match { ids -> ids.containsAll(offer.getAllProducts().map { product -> product.id }) }
             )
-            offerDatastoreOutputPort.update(storeId, offer)
+            offerDatastoreOutputPort.update(storeId, categoryId, offer)
         }
     }
 
     @Test
     fun `Should fail to update an offer when the store does not exist`() = runTest {
         val storeId = Id()
+        val categoryId = Id()
         val offer = mockOffer()
 
         coEvery { storeDatastoreOutputPort.exists(storeId) } returns Ok(false)
 
-        val result = updateOfferInputPort.execute(storeId, offer)
+        val result = updateOfferInputPort.execute(storeId, categoryId, offer)
 
         result.isErr.shouldBeTrue()
         result.error shouldBe StoreNotFoundException(storeId)
@@ -76,12 +78,13 @@ class UpdateOfferInputPortTest {
     @Test
     fun `Should fail to update an offer when the offer does not exist`() = runTest {
         val storeId = Id()
+        val categoryId = Id()
         val offer = mockOffer()
 
         coEvery { storeDatastoreOutputPort.exists(storeId) } returns Ok(true)
         coEvery { offerDatastoreOutputPort.findById(storeId, offer.id) } returns Ok(null)
 
-        val result = updateOfferInputPort.execute(storeId, offer)
+        val result = updateOfferInputPort.execute(storeId, categoryId, offer)
 
         result.isErr.shouldBeTrue()
         result.error shouldBe OfferNotFoundException(storeId, offer.id)
@@ -95,6 +98,7 @@ class UpdateOfferInputPortTest {
     @Test
     fun `Should fail to update an offer when the product does not exist`() = runTest {
         val storeId = Id()
+        val categoryId = Id()
         val offer = mockOffer()
 
         coEvery { storeDatastoreOutputPort.exists(storeId) } returns Ok(true)
@@ -102,9 +106,9 @@ class UpdateOfferInputPortTest {
         coEvery {
             productDatastoreOutputPort.getIfNotExists(storeId, match { ids -> ids.containsAll(offer.getAllProducts().map { product -> product.id }) })
         } returns Ok(offer.getAllProducts().map { product -> product.id })
-        coEvery { offerDatastoreOutputPort.update(storeId, offer) } returns Ok(Unit)
+        coEvery { offerDatastoreOutputPort.update(storeId, categoryId, offer) } returns Ok(Unit)
 
-        val result = updateOfferInputPort.execute(storeId, offer)
+        val result = updateOfferInputPort.execute(storeId, categoryId, offer)
 
         result.isErr.shouldBeTrue()
         result.error shouldBe ProductsNotFoundException(offer.getAllProducts().map { product -> product.id })

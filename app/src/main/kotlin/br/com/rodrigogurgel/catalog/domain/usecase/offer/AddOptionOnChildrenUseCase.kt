@@ -8,6 +8,7 @@ import com.github.michaelbull.result.Result
 interface AddOptionOnChildrenUseCase : UseCase {
     suspend fun execute(
         storeId: Id,
+        categoryId: Id,
         offerId: Id,
         customizationId: Id,
         option: Option,

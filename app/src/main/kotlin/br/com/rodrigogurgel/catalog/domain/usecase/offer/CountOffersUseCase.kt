@@ -8,5 +8,5 @@ interface CountOffersUseCase : UseCase {
     suspend fun execute(
         storeId: Id,
         categoryId: Id,
-    ): Result<Long, Throwable>
+    ): Result<Int, Throwable>
 }

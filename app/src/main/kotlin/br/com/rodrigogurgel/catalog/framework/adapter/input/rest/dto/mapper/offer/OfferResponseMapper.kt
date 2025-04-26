@@ -10,6 +10,7 @@ object OfferResponseMapper {
     fun Offer.asResponse(): OfferResponseDTO = OfferResponseDTO(
         id = id.value.toString(),
         name = name.value,
+        description = description?.value,
         product = product?.asResponse(),
         price = price.value,
         status = status,

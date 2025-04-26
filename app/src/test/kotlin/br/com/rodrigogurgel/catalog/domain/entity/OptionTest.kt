@@ -2,6 +2,7 @@ package br.com.rodrigogurgel.catalog.domain.entity
 
 import br.com.rodrigogurgel.catalog.domain.exception.CustomizationAlreadyExistsException
 import br.com.rodrigogurgel.catalog.domain.exception.CustomizationNotFoundException
+import br.com.rodrigogurgel.catalog.domain.vo.Description
 import br.com.rodrigogurgel.catalog.domain.vo.Id
 import br.com.rodrigogurgel.catalog.domain.vo.Name
 import br.com.rodrigogurgel.catalog.domain.vo.Price
@@ -28,6 +29,7 @@ class OptionTest {
     fun `Minimal price should be equal to 0 when Option price is 0 and customizations is empty`() {
         val id = Id()
         val name = Name(randomString(30))
+        val description = Description(randomString(30))
         val product = mockProduct()
         val price = Price.ZERO
         val quantity = Quantity(0, 1)
@@ -38,6 +40,7 @@ class OptionTest {
             Option(
                 id,
                 name,
+                description,
                 product,
                 quantity,
                 status,
@@ -62,6 +65,7 @@ class OptionTest {
     fun `Should update mutable values with success`() {
         val id = Id()
         val name = Name(randomString(30))
+        val description = Description(randomString(30))
         val product = mockProduct()
         val price = Price.ZERO
         val quantity = Quantity(0, 1)
@@ -71,6 +75,7 @@ class OptionTest {
             Option(
                 id,
                 name,
+                description,
                 product,
                 quantity,
                 status,
@@ -109,6 +114,7 @@ class OptionTest {
             Option(
                 Id(),
                 Name(randomString(30)),
+                Description(randomString(30)),
                 mockProduct(),
                 Quantity(1, 1),
                 AVAILABLE,
@@ -128,6 +134,7 @@ class OptionTest {
             Option(
                 Id(),
                 Name(randomString(30)),
+                Description(randomString(30)),
                 mockProduct(),
                 Quantity(0, 1),
                 AVAILABLE,
@@ -147,6 +154,7 @@ class OptionTest {
             Option(
                 Id(),
                 Name(randomString(30)),
+                Description(randomString(30)),
                 mockProduct(),
                 Quantity(2, 2),
                 AVAILABLE,
@@ -236,6 +244,7 @@ class OptionTest {
                 Option(
                     id,
                     name,
+                    description,
                     product,
                     quantity,
                     status,
@@ -260,6 +269,7 @@ class OptionTest {
                 Option(
                     id,
                     name,
+                    description,
                     product,
                     quantity,
                     UNAVAILABLE,

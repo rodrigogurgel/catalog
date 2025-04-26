@@ -231,8 +231,8 @@ class CategoryControllerTest {
             mockCategory()
         }.sortedBy { it.name.value }
 
-        coEvery { countCategoriesUseCase.execute(Id(storeId)) } returns Ok(categories.size.toLong())
-        coEvery { getCategoriesUseCase.execute(Id(storeId), 20, null) } returns Ok(null to categories)
+        coEvery { countCategoriesUseCase.execute(Id(storeId)) } returns Ok(categories.size)
+        coEvery { getCategoriesUseCase.execute(Id(storeId), 20, null) } returns Ok(categories)
 
         // when
         val result = mockMvc.get("/categories") {
@@ -269,8 +269,8 @@ class CategoryControllerTest {
             }
         }.sortedBy { it.name.value }
 
-        coEvery { getOffersUseCase.execute(Id(storeId), Id(categoryId), 20, 0) } returns Ok(offers)
-        coEvery { countOffersUseCase.execute(Id(storeId), Id(categoryId)) } returns Ok(offers.size.toLong())
+        coEvery { getOffersUseCase.execute(Id(storeId), Id(categoryId), 20, null) } returns Ok(offers)
+        coEvery { countOffersUseCase.execute(Id(storeId), Id(categoryId)) } returns Ok(offers.size)
 
         // when
         val result = mockMvc.get("/categories/{categoryId}/offers", categoryId.toString()) {

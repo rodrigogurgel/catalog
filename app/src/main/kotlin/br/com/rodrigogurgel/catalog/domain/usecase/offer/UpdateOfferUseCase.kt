@@ -8,6 +8,7 @@ import com.github.michaelbull.result.Result
 interface UpdateOfferUseCase : UseCase {
     suspend fun execute(
         storeId: Id,
+        categoryId: Id,
         offer: Offer,
     ): Result<Unit, Throwable>
 }

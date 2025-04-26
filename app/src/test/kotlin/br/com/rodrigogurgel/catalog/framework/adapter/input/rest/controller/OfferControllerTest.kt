@@ -175,6 +175,7 @@ class OfferControllerTest {
         val categoryId = UUID.randomUUID()
         val body = OfferRequestDTO(
             name = randomString(30),
+            description = randomString(1000),
             product = GenericRequestIdDTO(UUID.randomUUID()),
             price = BigDecimal.ONE,
             status = Status.AVAILABLE,
@@ -190,6 +191,7 @@ class OfferControllerTest {
                         OptionRequestDTO(
                             id = null,
                             name = randomString(50),
+                            description = randomString(1000),
                             product = GenericRequestIdDTO(UUID.randomUUID()),
                             price = BigDecimal.ONE,
                             minPermitted = 0,
@@ -207,6 +209,7 @@ class OfferControllerTest {
                                         OptionRequestDTO(
                                             id = null,
                                             name = randomString(50),
+                                            description = randomString(1000),
                                             product = GenericRequestIdDTO(UUID.randomUUID()),
                                             price = BigDecimal.ONE,
                                             minPermitted = 0,
@@ -218,7 +221,7 @@ class OfferControllerTest {
                                     )
                                 )
                             ),
-                            medias = emptyList()
+                            medias = emptyList(),
                         )
                     )
                 )
@@ -252,6 +255,7 @@ class OfferControllerTest {
         val categoryId = UUID.randomUUID()
         val body = OfferRequestDTO(
             name = randomString(30),
+            description = null,
             product = GenericRequestIdDTO(UUID.randomUUID()),
             price = BigDecimal.ONE,
             status = Status.AVAILABLE,
@@ -267,6 +271,7 @@ class OfferControllerTest {
                         OptionRequestDTO(
                             id = null,
                             name = randomString(50),
+                            description = null,
                             product = GenericRequestIdDTO(UUID.randomUUID()),
                             price = BigDecimal.ONE,
                             minPermitted = 0,
@@ -306,6 +311,7 @@ class OfferControllerTest {
         val categoryId = UUID.randomUUID()
         val body = OfferRequestDTO(
             name = randomString(30),
+            description = randomString(1000),
             product = GenericRequestIdDTO(UUID.randomUUID()),
             price = BigDecimal.ONE,
             status = Status.AVAILABLE,
@@ -335,9 +341,11 @@ class OfferControllerTest {
     fun `Update Offer`() {
         // given
         val storeId = UUID.randomUUID()
+        val categoryId = UUID.randomUUID()
         val offerId = UUID.randomUUID()
         val body = OfferRequestDTO(
             name = randomString(30),
+            description = randomString(1000),
             product = GenericRequestIdDTO(UUID.randomUUID()),
             price = BigDecimal.ONE,
             status = Status.AVAILABLE,
@@ -353,6 +361,7 @@ class OfferControllerTest {
                         OptionRequestDTO(
                             id = null,
                             name = randomString(50),
+                            description = randomString(1000),
                             product = GenericRequestIdDTO(UUID.randomUUID()),
                             price = BigDecimal.ONE,
                             minPermitted = 0,
@@ -370,6 +379,7 @@ class OfferControllerTest {
                                         OptionRequestDTO(
                                             id = null,
                                             name = randomString(50),
+                                            description = randomString(1000),
                                             product = GenericRequestIdDTO(UUID.randomUUID()),
                                             price = BigDecimal.ONE,
                                             minPermitted = 0,
@@ -389,11 +399,12 @@ class OfferControllerTest {
             medias = emptyList()
         )
 
-        coEvery { updateOfferUseCase.execute(Id(storeId), any()) } returns Ok(Unit)
+        coEvery { updateOfferUseCase.execute(Id(storeId), Id(categoryId), any()) } returns Ok(Unit)
 
         // when
         val result = mockMvc.put("/offers/{offerId}", offerId.toString()) {
             queryParam("storeId", storeId.toString())
+            queryParam("categoryId", categoryId.toString())
             accept = MediaType.APPLICATION_JSON
             contentType = MediaType.APPLICATION_JSON
             content = objectMapper.writeValueAsString(body)
@@ -430,6 +441,7 @@ class OfferControllerTest {
     fun `Add Customization`() {
         // given
         val storeId = UUID.randomUUID()
+        val categoryId = UUID.randomUUID()
         val offerId = UUID.randomUUID()
         val body = CustomizationRequestDTO(
             id = null,
@@ -442,6 +454,7 @@ class OfferControllerTest {
                 OptionRequestDTO(
                     id = null,
                     name = randomString(50),
+                    description = null,
                     product = GenericRequestIdDTO(UUID.randomUUID()),
                     price = BigDecimal.ONE,
                     minPermitted = 0,
@@ -454,12 +467,13 @@ class OfferControllerTest {
         )
 
         coEvery {
-            addCustomizationUseCase.execute(Id(storeId), Id(offerId), any())
+            addCustomizationUseCase.execute(Id(storeId), any(), Id(offerId), any())
         } returns Ok(Unit)
 
         // when
         val result = mockMvc.post("/offers/{offerId}/customizations", offerId.toString()) {
             queryParam("storeId", storeId.toString())
+            queryParam("categoryId", categoryId.toString())
             accept = MediaType.APPLICATION_JSON
             contentType = MediaType.APPLICATION_JSON
             content = objectMapper.writeValueAsString(body)
@@ -475,6 +489,7 @@ class OfferControllerTest {
     fun `Update Customization`() {
         // given
         val storeId = UUID.randomUUID()
+        val categoryId = UUID.randomUUID()
         val offerId = UUID.randomUUID()
         val customizationId = UUID.randomUUID()
         val body = CustomizationRequestDTO(
@@ -488,6 +503,7 @@ class OfferControllerTest {
                 OptionRequestDTO(
                     id = null,
                     name = randomString(50),
+                    description = randomString(1000),
                     product = GenericRequestIdDTO(UUID.randomUUID()),
                     price = BigDecimal.ONE,
                     minPermitted = 0,
@@ -500,7 +516,7 @@ class OfferControllerTest {
         )
 
         coEvery {
-            updateCustomizationUseCase.execute(Id(storeId), Id(offerId), any())
+            updateCustomizationUseCase.execute(Id(storeId), any(), Id(offerId), any())
         } returns Ok(Unit)
 
         // when
@@ -510,6 +526,7 @@ class OfferControllerTest {
             customizationId.toString()
         ) {
             queryParam("storeId", storeId.toString())
+            queryParam("categoryId", categoryId.toString())
             accept = MediaType.APPLICATION_JSON
             contentType = MediaType.APPLICATION_JSON
             content = objectMapper.writeValueAsString(body)
@@ -525,10 +542,11 @@ class OfferControllerTest {
     fun `Remove Customization`() {
         // given
         val storeId = UUID.randomUUID()
+        val categoryId = UUID.randomUUID()
         val offerId = UUID.randomUUID()
         val customizationId = UUID.randomUUID()
 
-        coEvery { removeCustomizationUseCase.execute(Id(storeId), Id(offerId), Id(customizationId)) } returns Ok(Unit)
+        coEvery { removeCustomizationUseCase.execute(Id(storeId), any(), Id(offerId), Id(customizationId)) } returns Ok(Unit)
 
         // when
         val result = mockMvc.delete(
@@ -537,6 +555,7 @@ class OfferControllerTest {
             customizationId.toString()
         ) {
             queryParam("storeId", storeId.toString())
+            queryParam("categoryId", categoryId.toString())
             accept = MediaType.APPLICATION_JSON
             contentType = MediaType.APPLICATION_JSON
         }.asyncDispatch().andDo { print() }
@@ -549,6 +568,7 @@ class OfferControllerTest {
     fun `Add Customization on Children`() {
         // given
         val storeId = UUID.randomUUID()
+        val categoryId = UUID.randomUUID()
         val offerId = UUID.randomUUID()
         val optionId = UUID.randomUUID()
         val body = CustomizationRequestDTO(
@@ -562,6 +582,7 @@ class OfferControllerTest {
                 OptionRequestDTO(
                     id = null,
                     name = randomString(50),
+                    description = randomString(1000),
                     product = GenericRequestIdDTO(UUID.randomUUID()),
                     price = BigDecimal.ONE,
                     minPermitted = 0,
@@ -574,7 +595,7 @@ class OfferControllerTest {
         )
 
         coEvery {
-            addCustomizationOnChildrenUseCase.execute(Id(storeId), Id(offerId), Id(optionId), any())
+            addCustomizationOnChildrenUseCase.execute(Id(storeId), any(), Id(offerId), Id(optionId), any())
         } returns Ok(Unit)
 
         // when
@@ -584,6 +605,7 @@ class OfferControllerTest {
             optionId.toString()
         ) {
             queryParam("storeId", storeId.toString())
+            queryParam("categoryId", categoryId.toString())
             accept = MediaType.APPLICATION_JSON
             contentType = MediaType.APPLICATION_JSON
             content = objectMapper.writeValueAsString(body)
@@ -599,6 +621,7 @@ class OfferControllerTest {
     fun `Update Customization on Children`() {
         // given
         val storeId = UUID.randomUUID()
+        val categoryId = UUID.randomUUID()
         val offerId = UUID.randomUUID()
         val optionId = UUID.randomUUID()
         val customizationId = UUID.randomUUID()
@@ -613,6 +636,7 @@ class OfferControllerTest {
                 OptionRequestDTO(
                     id = null,
                     name = randomString(50),
+                    description = randomString(1000),
                     product = GenericRequestIdDTO(UUID.randomUUID()),
                     price = BigDecimal.ONE,
                     minPermitted = 0,
@@ -627,6 +651,7 @@ class OfferControllerTest {
         coEvery {
             updateCustomizationOnChildrenUseCase.execute(
                 Id(storeId),
+                any(),
                 Id(offerId),
                 Id(optionId),
                 any()
@@ -641,6 +666,7 @@ class OfferControllerTest {
             customizationId.toString()
         ) {
             queryParam("storeId", storeId.toString())
+            queryParam("categoryId", categoryId.toString())
             accept = MediaType.APPLICATION_JSON
             contentType = MediaType.APPLICATION_JSON
             content = objectMapper.writeValueAsString(body)
@@ -656,6 +682,7 @@ class OfferControllerTest {
     fun `Remove Customization on Children`() {
         // given
         val storeId = UUID.randomUUID()
+        val categoryId = UUID.randomUUID()
         val offerId = UUID.randomUUID()
         val optionId = UUID.randomUUID()
         val customizationId = UUID.randomUUID()
@@ -663,6 +690,7 @@ class OfferControllerTest {
         coEvery {
             removeCustomizationOnChildrenUseCase.execute(
                 Id(storeId),
+                any(),
                 Id(offerId),
                 Id(optionId),
                 Id(customizationId)
@@ -677,6 +705,7 @@ class OfferControllerTest {
             customizationId.toString()
         ) {
             queryParam("storeId", storeId.toString())
+            queryParam("categoryId", categoryId.toString())
             accept = MediaType.APPLICATION_JSON
             contentType = MediaType.APPLICATION_JSON
         }.asyncDispatch().andDo { print() }
@@ -689,11 +718,13 @@ class OfferControllerTest {
     fun `Add Option`() {
         // given
         val storeId = UUID.randomUUID()
+        val categoryId = UUID.randomUUID()
         val offerId = UUID.randomUUID()
         val customizationId = UUID.randomUUID()
         val body = OptionRequestDTO(
             id = UUID.randomUUID(),
             name = randomString(50),
+            description = randomString(1000),
             product = GenericRequestIdDTO(UUID.randomUUID()),
             price = BigDecimal.ONE,
             minPermitted = 0,
@@ -703,7 +734,7 @@ class OfferControllerTest {
         )
 
         coEvery {
-            addOptionOnChildrenUseCase.execute(Id(storeId), Id(offerId), Id(customizationId), body.asEntity())
+            addOptionOnChildrenUseCase.execute(Id(storeId), any(), Id(offerId), Id(customizationId), body.asEntity())
         } returns Ok(Unit)
 
         // when
@@ -713,6 +744,7 @@ class OfferControllerTest {
             customizationId.toString()
         ) {
             queryParam("storeId", storeId.toString())
+            queryParam("categoryId", categoryId.toString())
             accept = MediaType.APPLICATION_JSON
             contentType = MediaType.APPLICATION_JSON
             content = objectMapper.writeValueAsString(body)
@@ -728,12 +760,14 @@ class OfferControllerTest {
     fun `Update Option`() {
         // given
         val storeId = UUID.randomUUID()
+        val categoryId = UUID.randomUUID()
         val offerId = UUID.randomUUID()
         val customizationId = UUID.randomUUID()
         val optionId = UUID.randomUUID()
         val body = OptionRequestDTO(
             id = null,
             name = randomString(50),
+            description = randomString(1000),
             product = GenericRequestIdDTO(UUID.randomUUID()),
             price = BigDecimal.ONE,
             minPermitted = 0,
@@ -751,6 +785,7 @@ class OfferControllerTest {
                         OptionRequestDTO(
                             id = null,
                             name = randomString(50),
+                            description = randomString(1000),
                             product = GenericRequestIdDTO(UUID.randomUUID()),
                             price = BigDecimal.ONE,
                             minPermitted = 0,
@@ -770,6 +805,7 @@ class OfferControllerTest {
         coEvery {
             updateOptionOnChildrenUseCase.execute(
                 Id(storeId),
+                any(),
                 Id(offerId),
                 Id(customizationId),
                 any()
@@ -784,6 +820,7 @@ class OfferControllerTest {
             optionId.toString()
         ) {
             queryParam("storeId", storeId.toString())
+            queryParam("categoryId", categoryId.toString())
             accept = MediaType.APPLICATION_JSON
             contentType = MediaType.APPLICATION_JSON
             content = objectMapper.writeValueAsString(body)
@@ -799,12 +836,13 @@ class OfferControllerTest {
     fun `Remove Option on Children`() {
         // given
         val storeId = UUID.randomUUID()
+        val categoryId = UUID.randomUUID()
         val offerId = UUID.randomUUID()
         val customizationId = UUID.randomUUID()
         val optionId = UUID.randomUUID()
 
         coEvery {
-            removeOptionOnChildrenUseCase.execute(Id(storeId), Id(offerId), Id(customizationId), Id(optionId))
+            removeOptionOnChildrenUseCase.execute(Id(storeId), any(), Id(offerId), Id(customizationId), Id(optionId))
         } returns Ok(Unit)
 
         // when
@@ -815,6 +853,7 @@ class OfferControllerTest {
             optionId.toString()
         ) {
             queryParam("storeId", storeId.toString())
+            queryParam("categoryId", categoryId.toString())
             accept = MediaType.APPLICATION_JSON
             contentType = MediaType.APPLICATION_JSON
         }.asyncDispatch().andDo { print() }

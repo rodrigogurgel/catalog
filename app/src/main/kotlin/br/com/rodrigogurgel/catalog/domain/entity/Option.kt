@@ -2,6 +2,7 @@ package br.com.rodrigogurgel.catalog.domain.entity
 
 import br.com.rodrigogurgel.catalog.domain.exception.CustomizationAlreadyExistsException
 import br.com.rodrigogurgel.catalog.domain.exception.CustomizationNotFoundException
+import br.com.rodrigogurgel.catalog.domain.vo.Description
 import br.com.rodrigogurgel.catalog.domain.vo.Id
 import br.com.rodrigogurgel.catalog.domain.vo.Media
 import br.com.rodrigogurgel.catalog.domain.vo.Name
@@ -14,6 +15,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder
 data class Option(
     val id: Id,
     val name: Name,
+    val description: Description?,
     var product: Product?,
     var quantity: Quantity,
     var status: Status,
@@ -98,6 +100,7 @@ data class Option(
         return EqualsBuilder()
             .append(id, other.id)
             .append(name, other.name)
+            .append(description, other.description)
             .append(product, other.product)
             .append(price.value, other.price.value)
             .append(quantity, other.quantity)
@@ -110,6 +113,7 @@ data class Option(
         return HashCodeBuilder()
             .append(id)
             .append(name)
+            .append(description)
             .append(product)
             .append(price.value)
             .append(quantity)

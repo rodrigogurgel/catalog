@@ -6,6 +6,7 @@ import br.com.rodrigogurgel.catalog.application.exception.StoreNotFoundException
 import br.com.rodrigogurgel.catalog.application.port.output.datastore.OfferDatastoreOutputPort
 import br.com.rodrigogurgel.catalog.application.port.output.datastore.ProductDatastoreOutputPort
 import br.com.rodrigogurgel.catalog.application.port.output.datastore.StoreDatastoreOutputPort
+import br.com.rodrigogurgel.catalog.common.logger.extensions.CATEGORY_ID
 import br.com.rodrigogurgel.catalog.common.logger.extensions.OFFER
 import br.com.rodrigogurgel.catalog.common.logger.extensions.STORE_ID
 import br.com.rodrigogurgel.catalog.common.logger.extensions.failure
@@ -33,6 +34,7 @@ class UpdateOfferInputPort(
 
     override suspend fun execute(
         storeId: Id,
+        categoryId: Id,
         offer: Offer
     ) = suspendSpan(action()) {
         storeDatastoreOutputPort.exists(storeId)
@@ -40,11 +42,12 @@ class UpdateOfferInputPort(
             .andThen { offerDatastoreOutputPort.findById(storeId, offer.id) }
             .toErrorIfNull { OfferNotFoundException(storeId, offer.id) }
             .andThen { validateOffer(storeId, offer) }
-            .andThen { offerDatastoreOutputPort.update(storeId, offer) }
+            .andThen { offerDatastoreOutputPort.update(storeId, categoryId, offer) }
             .onSuccess {
                 logger.success(
                     action(),
                     STORE_ID to storeId,
+                    CATEGORY_ID to categoryId,
                     OFFER to offer,
                 )
             }
@@ -53,6 +56,7 @@ class UpdateOfferInputPort(
                     action(),
                     it,
                     STORE_ID to storeId,
+                    CATEGORY_ID to categoryId,
                     OFFER to offer,
                 )
             }

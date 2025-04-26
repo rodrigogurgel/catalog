@@ -5,6 +5,7 @@ import br.com.rodrigogurgel.catalog.domain.exception.CustomizationNotFoundExcept
 import br.com.rodrigogurgel.catalog.domain.exception.DuplicatedCustomizationException
 import br.com.rodrigogurgel.catalog.domain.exception.DuplicatedOptionException
 import br.com.rodrigogurgel.catalog.domain.exception.OfferPriceZeroException
+import br.com.rodrigogurgel.catalog.domain.vo.Description
 import br.com.rodrigogurgel.catalog.domain.vo.Id
 import br.com.rodrigogurgel.catalog.domain.vo.Media
 import br.com.rodrigogurgel.catalog.domain.vo.Name
@@ -16,6 +17,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder
 class Offer(
     val id: Id,
     var name: Name,
+    var description: Description?,
     var product: Product?,
     price: Price,
     var status: Status,
@@ -158,6 +160,7 @@ class Offer(
         return EqualsBuilder()
             .append(id, other.id)
             .append(name, other.name)
+            .append(description, other.description)
             .append(product, other.product)
             .append(price.value, other.price.value)
             .append(status, other.status)
@@ -169,6 +172,7 @@ class Offer(
         return HashCodeBuilder()
             .append(id)
             .append(name)
+            .append(description)
             .append(product)
             .append(price.value)
             .append(status)

@@ -5,6 +5,6 @@ import br.com.rodrigogurgel.catalog.framework.adapter.input.rest.dto.response.co
 data class OfferPageResponseDTO(
     override val limit: Int,
     override val nextCursor: String?,
-    override val total: Long,
+    override val total: Int,
     override val data: List<OfferResponseDTO>,
 ) : PageResponseDTO<OfferResponseDTO>(limit, nextCursor, total, data)

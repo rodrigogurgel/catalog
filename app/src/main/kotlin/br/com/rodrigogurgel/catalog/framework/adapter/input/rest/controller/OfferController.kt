@@ -36,6 +36,8 @@ import com.github.michaelbull.result.mapCatching
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
+import kotlinx.coroutines.slf4j.MDCContext
+import kotlinx.coroutines.withContext
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
@@ -90,18 +92,20 @@ class OfferController(
         @RequestParam storeId: UUID,
         @RequestParam categoryId: UUID,
         @RequestBody offerRequestDTO: OfferRequestDTO,
-    ): ResponseEntity<GenericResponseIdDTO> = runSuspendCatching {
-        offerRequestDTO.asEntity()
-    }.andThen { offer ->
-        createOfferUseCase.execute(Id(storeId), Id(categoryId), offer)
-            .map { GenericResponseIdDTO(offer.id.value.toString()) }
-    }.mapBoth({
-        logger.responseProduced(STORE_ID to storeId, RESULT to it)
-        success(it, HttpStatus.CREATED)
-    }, {
-        logger.responseProduced(it, STORE_ID to storeId)
-        failure(it)
-    })
+    ): ResponseEntity<GenericResponseIdDTO> = withContext(MDCContext()) {
+        runSuspendCatching {
+            offerRequestDTO.asEntity()
+        }.andThen { offer ->
+            createOfferUseCase.execute(Id(storeId), Id(categoryId), offer)
+                .map { GenericResponseIdDTO(offer.id.value.toString()) }
+        }.mapBoth({
+            logger.responseProduced(STORE_ID to storeId, RESULT to it)
+            success(it, HttpStatus.CREATED)
+        }, {
+            logger.responseProduced(it, STORE_ID to storeId)
+            failure(it)
+        })
+    }
 
     @Operation(summary = "Get an Offer from the Store", description = "Returns 200 if successful")
     @ApiResponses(
@@ -120,15 +124,17 @@ class OfferController(
     suspend fun getOfferById(
         @RequestParam storeId: UUID,
         @PathVariable offerId: UUID,
-    ): ResponseEntity<OfferResponseDTO> = getOfferUseCase.execute(Id(storeId), Id(offerId))
-        .mapCatching { it.asResponse() }
-        .mapBoth({
-            logger.responseProduced(STORE_ID to storeId, RESULT to it)
-            success(it)
-        }, {
-            logger.responseProduced(it, STORE_ID to storeId)
-            failure(it)
-        })
+    ): ResponseEntity<OfferResponseDTO> = withContext(MDCContext()) {
+        getOfferUseCase.execute(Id(storeId), Id(offerId))
+            .mapCatching { it.asResponse() }
+            .mapBoth({
+                logger.responseProduced(STORE_ID to storeId, RESULT to it)
+                success(it)
+            }, {
+                logger.responseProduced(it, STORE_ID to storeId)
+                failure(it)
+            })
+    }
 
     @Operation(summary = "Delete an Offer from the Store", description = "Returns 204 if successful")
     @ApiResponses(
@@ -148,14 +154,16 @@ class OfferController(
     suspend fun deleteOffer(
         @RequestParam storeId: UUID,
         @PathVariable offerId: UUID,
-    ): ResponseEntity<Unit> = deleteOfferUseCase.execute(Id(storeId), Id(offerId))
-        .mapBoth({
-            logger.responseProduced(STORE_ID to storeId, RESULT to it)
-            success(it, HttpStatus.NO_CONTENT)
-        }, {
-            logger.responseProduced(it, STORE_ID to storeId)
-            failure(it)
-        })
+    ): ResponseEntity<Unit> = withContext(MDCContext()) {
+        deleteOfferUseCase.execute(Id(storeId), Id(offerId))
+            .mapBoth({
+                logger.responseProduced(STORE_ID to storeId, RESULT to it)
+                success(it, HttpStatus.NO_CONTENT)
+            }, {
+                logger.responseProduced(it, STORE_ID to storeId)
+                failure(it)
+            })
+    }
 
     @Operation(summary = "Update an Offer in the Store", description = "Returns 200 if successful")
     @ApiResponses(
@@ -174,19 +182,22 @@ class OfferController(
     )
     suspend fun updateOffer(
         @RequestParam storeId: UUID,
+        @RequestParam categoryId: UUID,
         @PathVariable offerId: UUID,
         @RequestBody offerRequestDTO: OfferRequestDTO,
-    ): ResponseEntity<Unit> = runSuspendCatching {
-        offerRequestDTO.asEntity(offerId,)
-    }.andThen { offer ->
-        updateOfferUseCase.execute(Id(storeId), offer)
-    }.mapBoth({
-        logger.responseProduced(STORE_ID to storeId, RESULT to it)
-        success(it)
-    }, {
-        logger.responseProduced(it, STORE_ID to storeId)
-        failure(it)
-    })
+    ): ResponseEntity<Unit> = withContext(MDCContext()) {
+        runSuspendCatching {
+            offerRequestDTO.asEntity(offerId)
+        }.andThen { offer ->
+            updateOfferUseCase.execute(Id(storeId), Id(categoryId), offer)
+        }.mapBoth({
+            logger.responseProduced(STORE_ID to storeId, RESULT to it)
+            success(it)
+        }, {
+            logger.responseProduced(it, STORE_ID to storeId)
+            failure(it)
+        })
+    }
 
     @Operation(
         summary = "Update an Offer in the Store adding a new Customization",
@@ -209,20 +220,23 @@ class OfferController(
     @ResponseStatus(HttpStatus.CREATED)
     suspend fun addCustomization(
         @RequestParam storeId: UUID,
+        @RequestParam categoryId: UUID,
         @PathVariable offerId: UUID,
         @RequestBody customizationRequestDTO: CustomizationRequestDTO,
-    ): ResponseEntity<GenericResponseIdDTO> = runSuspendCatching {
-        customizationRequestDTO.asEntity()
-    }.andThen { customization ->
-        addCustomizationUseCase.execute(Id(storeId), Id(offerId), customization)
-            .map { GenericResponseIdDTO(customization.id.value.toString()) }
-    }.mapBoth({
-        logger.responseProduced(STORE_ID to storeId, RESULT to it)
-        success(it, HttpStatus.CREATED)
-    }, {
-        logger.responseProduced(it, STORE_ID to storeId)
-        failure(it)
-    })
+    ): ResponseEntity<GenericResponseIdDTO> = withContext(MDCContext()) {
+        runSuspendCatching {
+            customizationRequestDTO.asEntity()
+        }.andThen { customization ->
+            addCustomizationUseCase.execute(Id(storeId), Id(categoryId), Id(offerId), customization)
+                .map { GenericResponseIdDTO(customization.id.value.toString()) }
+        }.mapBoth({
+            logger.responseProduced(STORE_ID to storeId, RESULT to it)
+            success(it, HttpStatus.CREATED)
+        }, {
+            logger.responseProduced(it, STORE_ID to storeId)
+            failure(it)
+        })
+    }
 
     @Operation(
         summary = "Update a Customization Offer",
@@ -244,24 +258,28 @@ class OfferController(
     )
     suspend fun updateCustomization(
         @RequestParam storeId: UUID,
+        @RequestParam categoryId: UUID,
         @PathVariable offerId: UUID,
         @PathVariable customizationId: UUID,
         @RequestBody updateCustomizationRequestDTO: CustomizationRequestDTO,
-    ): ResponseEntity<Unit> = runSuspendCatching {
-        updateCustomizationRequestDTO.copy(id = customizationId).asEntity()
-    }.andThen { customization ->
-        updateCustomizationUseCase.execute(
-            Id(storeId),
-            Id(offerId),
-            customization
-        )
-    }.mapBoth({
-        logger.responseProduced(STORE_ID to storeId, RESULT to it)
-        success(it)
-    }, {
-        logger.responseProduced(it, STORE_ID to storeId)
-        failure(it)
-    })
+    ): ResponseEntity<Unit> = withContext(MDCContext()) {
+        runSuspendCatching {
+            updateCustomizationRequestDTO.copy(id = customizationId).asEntity()
+        }.andThen { customization ->
+            updateCustomizationUseCase.execute(
+                Id(storeId),
+                Id(categoryId),
+                Id(offerId),
+                customization
+            )
+        }.mapBoth({
+            logger.responseProduced(STORE_ID to storeId, RESULT to it)
+            success(it)
+        }, {
+            logger.responseProduced(it, STORE_ID to storeId)
+            failure(it)
+        })
+    }
 
     @Operation(
         summary = "Remove a Customization from the Offer",
@@ -283,19 +301,23 @@ class OfferController(
     @ResponseStatus(HttpStatus.NO_CONTENT)
     suspend fun removeCustomization(
         @RequestParam storeId: UUID,
+        @RequestParam categoryId: UUID,
         @PathVariable offerId: UUID,
         @PathVariable customizationId: UUID,
-    ): ResponseEntity<Unit> = removeCustomizationUseCase.execute(
-        Id(storeId),
-        Id(offerId),
-        Id(customizationId)
-    ).mapBoth({
-        logger.responseProduced(STORE_ID to storeId, RESULT to it)
-        success(it, HttpStatus.NO_CONTENT)
-    }, {
-        logger.responseProduced(it, STORE_ID to storeId)
-        failure(it)
-    })
+    ): ResponseEntity<Unit> = withContext(MDCContext()) {
+        removeCustomizationUseCase.execute(
+            Id(storeId),
+            Id(categoryId),
+            Id(offerId),
+            Id(customizationId)
+        ).mapBoth({
+            logger.responseProduced(STORE_ID to storeId, RESULT to it)
+            success(it, HttpStatus.NO_CONTENT)
+        }, {
+            logger.responseProduced(it, STORE_ID to storeId)
+            failure(it)
+        })
+    }
 
     @Operation(
         summary = "Create a Customization in a child of the Offer",
@@ -318,27 +340,31 @@ class OfferController(
     @ResponseStatus(HttpStatus.CREATED)
     suspend fun addCustomizationOnChildren(
         @RequestParam storeId: UUID,
+        @RequestParam categoryId: UUID,
         @PathVariable offerId: UUID,
         @PathVariable optionId: UUID,
         @RequestBody customizationRequestDTO: CustomizationRequestDTO,
-    ): ResponseEntity<GenericResponseIdDTO> = runSuspendCatching {
-        customizationRequestDTO.asEntity()
-    }.andThen { customization ->
-        addCustomizationOnChildrenUseCase.execute(
-            Id(storeId),
-            Id(offerId),
-            Id(optionId),
-            customization
-        ).map {
-            GenericResponseIdDTO(customization.id.value.toString())
-        }
-    }.mapBoth({
-        logger.responseProduced(STORE_ID to storeId, RESULT to it)
-        success(it, HttpStatus.CREATED)
-    }, {
-        logger.responseProduced(it, STORE_ID to storeId)
-        failure(it)
-    })
+    ): ResponseEntity<GenericResponseIdDTO> = withContext(MDCContext()) {
+        runSuspendCatching {
+            customizationRequestDTO.asEntity()
+        }.andThen { customization ->
+            addCustomizationOnChildrenUseCase.execute(
+                Id(storeId),
+                Id(categoryId),
+                Id(offerId),
+                Id(optionId),
+                customization
+            ).map {
+                GenericResponseIdDTO(customization.id.value.toString())
+            }
+        }.mapBoth({
+            logger.responseProduced(STORE_ID to storeId, RESULT to it)
+            success(it, HttpStatus.CREATED)
+        }, {
+            logger.responseProduced(it, STORE_ID to storeId)
+            failure(it)
+        })
+    }
 
     @Operation(
         summary = "Update a Customization in a child of the Offer",
@@ -360,26 +386,30 @@ class OfferController(
     )
     suspend fun updateCustomizationOnChildren(
         @RequestParam storeId: UUID,
+        @RequestParam categoryId: UUID,
         @PathVariable offerId: UUID,
         @PathVariable optionId: UUID,
         @PathVariable customizationId: UUID,
         @RequestBody updateCustomizationRequestDTO: CustomizationRequestDTO,
-    ): ResponseEntity<GenericResponseIdDTO> = runSuspendCatching {
-        updateCustomizationRequestDTO.copy(customizationId).asEntity()
-    }.andThen { customization ->
-        updateCustomizationOnChildrenUseCase.execute(
-            Id(storeId),
-            Id(offerId),
-            Id(optionId),
-            customization
-        ).map { GenericResponseIdDTO(customization.id.value.toString()) }
-    }.mapBoth({
-        logger.responseProduced(STORE_ID to storeId, RESULT to it)
-        success(it)
-    }, {
-        logger.responseProduced(it, STORE_ID to storeId)
-        failure(it)
-    })
+    ): ResponseEntity<GenericResponseIdDTO> = withContext(MDCContext()) {
+        runSuspendCatching {
+            updateCustomizationRequestDTO.copy(customizationId).asEntity()
+        }.andThen { customization ->
+            updateCustomizationOnChildrenUseCase.execute(
+                Id(storeId),
+                Id(categoryId),
+                Id(offerId),
+                Id(optionId),
+                customization
+            ).map { GenericResponseIdDTO(customization.id.value.toString()) }
+        }.mapBoth({
+            logger.responseProduced(STORE_ID to storeId, RESULT to it)
+            success(it)
+        }, {
+            logger.responseProduced(it, STORE_ID to storeId)
+            failure(it)
+        })
+    }
 
     @Operation(
         summary = "Delete a Customization in a child of the Offer",
@@ -401,21 +431,25 @@ class OfferController(
     @ResponseStatus(HttpStatus.NO_CONTENT)
     suspend fun removeCustomizationOnChildren(
         @RequestParam storeId: UUID,
+        @RequestParam categoryId: UUID,
         @PathVariable offerId: UUID,
         @PathVariable optionId: UUID,
         @PathVariable customizationId: UUID,
-    ): ResponseEntity<Unit> = removeCustomizationOnChildrenUseCase.execute(
-        Id(storeId),
-        Id(offerId),
-        Id(optionId),
-        Id(customizationId),
-    ).mapBoth({
-        logger.responseProduced(STORE_ID to storeId, RESULT to it)
-        success(it, HttpStatus.NO_CONTENT)
-    }, {
-        logger.responseProduced(it, STORE_ID to storeId)
-        failure(it)
-    })
+    ): ResponseEntity<Unit> = withContext(MDCContext()) {
+        removeCustomizationOnChildrenUseCase.execute(
+            Id(storeId),
+            Id(categoryId),
+            Id(offerId),
+            Id(optionId),
+            Id(customizationId),
+        ).mapBoth({
+            logger.responseProduced(STORE_ID to storeId, RESULT to it)
+            success(it, HttpStatus.NO_CONTENT)
+        }, {
+            logger.responseProduced(it, STORE_ID to storeId)
+            failure(it)
+        })
+    }
 
     @Operation(
         summary = "Create an Option in a child of the Offer",
@@ -438,25 +472,29 @@ class OfferController(
     @ResponseStatus(HttpStatus.CREATED)
     suspend fun addOptionOnChildren(
         @RequestParam storeId: UUID,
+        @RequestParam categoryId: UUID,
         @PathVariable offerId: UUID,
         @PathVariable customizationId: UUID,
         @RequestBody optionRequestDTO: OptionRequestDTO,
-    ): ResponseEntity<GenericResponseIdDTO> = runSuspendCatching {
-        optionRequestDTO.asEntity()
-    }.andThen { option ->
-        addOptionOnChildrenUseCase.execute(
-            Id(storeId),
-            Id(offerId),
-            Id(customizationId),
-            option
-        ).map { GenericResponseIdDTO(option.id.value.toString()) }
-    }.mapBoth({
-        logger.responseProduced(STORE_ID to storeId, RESULT to it)
-        success(it, HttpStatus.CREATED)
-    }, {
-        logger.responseProduced(it, STORE_ID to storeId)
-        failure(it)
-    })
+    ): ResponseEntity<GenericResponseIdDTO> = withContext(MDCContext()) {
+        runSuspendCatching {
+            optionRequestDTO.asEntity()
+        }.andThen { option ->
+            addOptionOnChildrenUseCase.execute(
+                Id(storeId),
+                Id(categoryId),
+                Id(offerId),
+                Id(customizationId),
+                option
+            ).map { GenericResponseIdDTO(option.id.value.toString()) }
+        }.mapBoth({
+            logger.responseProduced(STORE_ID to storeId, RESULT to it)
+            success(it, HttpStatus.CREATED)
+        }, {
+            logger.responseProduced(it, STORE_ID to storeId)
+            failure(it)
+        })
+    }
 
     @Operation(
         summary = "Update an Option in a child of the Offer",
@@ -478,26 +516,30 @@ class OfferController(
     )
     suspend fun updateOptionOnChildren(
         @RequestParam storeId: UUID,
+        @RequestParam categoryId: UUID,
         @PathVariable offerId: UUID,
         @PathVariable customizationId: UUID,
         @PathVariable optionId: UUID,
         @RequestBody updateOptionRequestDTO: OptionRequestDTO,
-    ): ResponseEntity<GenericResponseIdDTO> = runSuspendCatching {
-        updateOptionRequestDTO.copy(id = optionId).asEntity()
-    }.andThen { option ->
-        updateOptionOnChildrenUseCase.execute(
-            Id(storeId),
-            Id(offerId),
-            Id(customizationId),
-            option
-        ).map { GenericResponseIdDTO(option.id.value.toString()) }
-    }.mapBoth({
-        logger.responseProduced(STORE_ID to storeId, RESULT to it)
-        success(it)
-    }, {
-        logger.responseProduced(it, STORE_ID to storeId)
-        failure(it)
-    })
+    ): ResponseEntity<GenericResponseIdDTO> = withContext(MDCContext()) {
+        runSuspendCatching {
+            updateOptionRequestDTO.copy(id = optionId).asEntity()
+        }.andThen { option ->
+            updateOptionOnChildrenUseCase.execute(
+                Id(storeId),
+                Id(categoryId),
+                Id(offerId),
+                Id(customizationId),
+                option
+            ).map { GenericResponseIdDTO(option.id.value.toString()) }
+        }.mapBoth({
+            logger.responseProduced(STORE_ID to storeId, RESULT to it)
+            success(it)
+        }, {
+            logger.responseProduced(it, STORE_ID to storeId)
+            failure(it)
+        })
+    }
 
     @Operation(
         summary = "Remove an Option in a child of the Offer",
@@ -519,19 +561,23 @@ class OfferController(
     @ResponseStatus(HttpStatus.NO_CONTENT)
     suspend fun removeOptionOnChildren(
         @RequestParam storeId: UUID,
+        @RequestParam categoryId: UUID,
         @PathVariable offerId: UUID,
         @PathVariable customizationId: UUID,
         @PathVariable optionId: UUID,
-    ): ResponseEntity<Unit> = removeOptionOnChildrenUseCase.execute(
-        Id(storeId),
-        Id(offerId),
-        Id(customizationId),
-        Id(optionId)
-    ).mapBoth({
-        logger.responseProduced(STORE_ID to storeId, RESULT to it)
-        success(it, HttpStatus.NO_CONTENT)
-    }, {
-        logger.responseProduced(it, STORE_ID to storeId)
-        failure(it)
-    })
+    ): ResponseEntity<Unit> = withContext(MDCContext()) {
+        removeOptionOnChildrenUseCase.execute(
+            Id(storeId),
+            Id(categoryId),
+            Id(offerId),
+            Id(customizationId),
+            Id(optionId)
+        ).mapBoth({
+            logger.responseProduced(STORE_ID to storeId, RESULT to it)
+            success(it, HttpStatus.NO_CONTENT)
+        }, {
+            logger.responseProduced(it, STORE_ID to storeId)
+            failure(it)
+        })
+    }
 }

@@ -30,6 +30,7 @@ class RemoveCustomizationInputPortTest {
     @Test
     fun `Should successfully remove a customization`() = runTest {
         val storeId = Id()
+        val categoryId = Id()
         val customization = mockCustomization()
         val offer = mockOfferWith {
             customizations = mutableListOf(customization)
@@ -37,22 +38,23 @@ class RemoveCustomizationInputPortTest {
 
         coEvery { storeDatastoreOutputPort.exists(storeId) } returns Ok(true)
         coEvery { offerDatastoreOutputPort.findById(storeId, offer.id) } returns Ok(offer)
-        coEvery { offerDatastoreOutputPort.update(storeId, offer) } returns Ok(Unit)
+        coEvery { offerDatastoreOutputPort.update(storeId, categoryId, offer) } returns Ok(Unit)
 
-        val result = removeCustomizationInputPort.execute(storeId, offer.id, customization.id)
+        val result = removeCustomizationInputPort.execute(storeId, categoryId, offer.id, customization.id)
 
         result.isOk.shouldBeTrue()
 
         coVerifySequence {
             storeDatastoreOutputPort.exists(storeId)
             offerDatastoreOutputPort.findById(storeId, offer.id)
-            offerDatastoreOutputPort.update(storeId, offer)
+            offerDatastoreOutputPort.update(storeId, categoryId, offer)
         }
     }
 
     @Test
     fun `Should fail to remove a customization from the offer when the offer does not exist`() = runTest {
         val storeId = Id()
+        val categoryId = Id()
         val customization = mockCustomization()
         val offer = mockOfferWith {
             customizations = mutableListOf(customization)
@@ -61,7 +63,7 @@ class RemoveCustomizationInputPortTest {
         coEvery { storeDatastoreOutputPort.exists(storeId) } returns Ok(true)
         coEvery { offerDatastoreOutputPort.findById(storeId, offer.id) } returns Ok(null)
 
-        val result = removeCustomizationInputPort.execute(storeId, offer.id, customization.id)
+        val result = removeCustomizationInputPort.execute(storeId, categoryId, offer.id, customization.id)
 
         result.isErr.shouldBeTrue()
         result.error shouldBe OfferNotFoundException(storeId, offer.id)
@@ -75,6 +77,7 @@ class RemoveCustomizationInputPortTest {
     @Test
     fun `Should fail to remove a customization from the offer when the store does not exist`() = runTest {
         val storeId = Id()
+        val categoryId = Id()
         val customization = mockCustomization()
         val offer = mockOfferWith {
             customizations = mutableListOf(customization)
@@ -82,7 +85,7 @@ class RemoveCustomizationInputPortTest {
 
         coEvery { storeDatastoreOutputPort.exists(storeId) } returns Ok(false)
 
-        val result = removeCustomizationInputPort.execute(storeId, offer.id, customization.id)
+        val result = removeCustomizationInputPort.execute(storeId, categoryId, offer.id, customization.id)
 
         result.isErr.shouldBeTrue()
         result.error shouldBe StoreNotFoundException(storeId)

@@ -34,6 +34,7 @@ class UpdateCustomizationInputPortTest {
     @Test
     fun `Should successfully update a customization`() = runTest {
         val storeId = Id()
+        val categoryId = Id()
         val customization = mockCustomization()
         val newCustomization = mockCustomizationWith {
             id = customization.id
@@ -44,12 +45,12 @@ class UpdateCustomizationInputPortTest {
 
         coEvery { storeDatastoreOutputPort.exists(storeId) } returns Ok(true)
         coEvery { offerDatastoreOutputPort.findById(storeId, offer.id) } returns Ok(offer)
-        coEvery { offerDatastoreOutputPort.update(storeId, offer) } returns Ok(Unit)
+        coEvery { offerDatastoreOutputPort.update(storeId, categoryId, offer) } returns Ok(Unit)
         coEvery {
             productDatastoreOutputPort.getIfNotExists(storeId, match { ids -> ids.containsAll(offer.getAllProducts().map { product -> product.id }) })
         } returns Ok(emptyList())
 
-        val result = updateCustomizationInputPort.execute(storeId, offer.id, newCustomization)
+        val result = updateCustomizationInputPort.execute(storeId, categoryId, offer.id, newCustomization)
 
         result.isOk.shouldBeTrue()
 
@@ -60,13 +61,14 @@ class UpdateCustomizationInputPortTest {
                 storeId,
                 match { ids -> ids.containsAll(offer.getAllProducts().map { product -> product.id }) }
             )
-            offerDatastoreOutputPort.update(storeId, offer)
+            offerDatastoreOutputPort.update(storeId, categoryId, offer)
         }
     }
 
     @Test
     fun `Should fail to update a customization from the offer when the store does not exist`() = runTest {
         val storeId = Id()
+        val categoryId = Id()
         val customization = mockCustomization()
         val newCustomization = mockCustomizationWith {
             id = customization.id
@@ -77,7 +79,7 @@ class UpdateCustomizationInputPortTest {
 
         coEvery { storeDatastoreOutputPort.exists(storeId) } returns Ok(false)
 
-        val result = updateCustomizationInputPort.execute(storeId, offer.id, newCustomization)
+        val result = updateCustomizationInputPort.execute(storeId, categoryId, offer.id, newCustomization)
 
         result.isErr.shouldBeTrue()
         result.error shouldBe StoreNotFoundException(storeId)
@@ -90,6 +92,7 @@ class UpdateCustomizationInputPortTest {
     @Test
     fun `Should fail to update a customization from the offer when the offer does not exist`() = runTest {
         val storeId = Id()
+        val categoryId = Id()
         val customization = mockCustomization()
         val newCustomization = mockCustomizationWith {
             id = customization.id
@@ -101,7 +104,7 @@ class UpdateCustomizationInputPortTest {
         coEvery { storeDatastoreOutputPort.exists(storeId) } returns Ok(true)
         coEvery { offerDatastoreOutputPort.findById(storeId, offer.id) } returns Ok(null)
 
-        val result = updateCustomizationInputPort.execute(storeId, offer.id, newCustomization)
+        val result = updateCustomizationInputPort.execute(storeId, categoryId, offer.id, newCustomization)
 
         result.isErr.shouldBeTrue()
         result.error shouldBe OfferNotFoundException(storeId, offer.id)
@@ -115,6 +118,7 @@ class UpdateCustomizationInputPortTest {
     @Test
     fun `Should fail to update a customization from the offer when the product does not exist`() = runTest {
         val storeId = Id()
+        val categoryId = Id()
         val customization = mockCustomization()
         val newCustomization = mockCustomizationWith {
             id = customization.id
@@ -125,12 +129,12 @@ class UpdateCustomizationInputPortTest {
 
         coEvery { storeDatastoreOutputPort.exists(storeId) } returns Ok(true)
         coEvery { offerDatastoreOutputPort.findById(storeId, offer.id) } returns Ok(offer)
-        coEvery { offerDatastoreOutputPort.update(storeId, offer) } returns Ok(Unit)
+        coEvery { offerDatastoreOutputPort.update(storeId, categoryId, offer) } returns Ok(Unit)
         coEvery {
             productDatastoreOutputPort.getIfNotExists(storeId, match { ids -> ids.containsAll(offer.getAllProducts().map { product -> product.id }) })
         } returns Ok(newCustomization.options.map { it.product!!.id })
 
-        val result = updateCustomizationInputPort.execute(storeId, offer.id, newCustomization)
+        val result = updateCustomizationInputPort.execute(storeId, categoryId, offer.id, newCustomization)
 
         result.isErr.shouldBeTrue()
         result.error shouldBe ProductsNotFoundException(newCustomization.options.map { it.product!!.id })

@@ -2,6 +2,7 @@ package br.com.rodrigogurgel.catalog.framework.adapter.input.rest.dto.mapper.off
 
 import br.com.rodrigogurgel.catalog.domain.entity.Offer
 import br.com.rodrigogurgel.catalog.domain.entity.Product
+import br.com.rodrigogurgel.catalog.domain.vo.Description
 import br.com.rodrigogurgel.catalog.domain.vo.Id
 import br.com.rodrigogurgel.catalog.domain.vo.Name
 import br.com.rodrigogurgel.catalog.domain.vo.Price
@@ -14,6 +15,7 @@ object OfferRequestMapper {
     fun OfferRequestDTO.asEntity(offerId: UUID): Offer = Offer(
         id = Id(offerId),
         name = Name(name),
+        description = description?.let { Description(description) },
         product = Product(
             id = Id(product.id),
             name = Name("OFFER${offerId}HOLDER"),

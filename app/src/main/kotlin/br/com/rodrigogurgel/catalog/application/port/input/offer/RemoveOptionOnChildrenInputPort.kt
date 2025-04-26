@@ -4,6 +4,7 @@ import br.com.rodrigogurgel.catalog.application.exception.OfferNotFoundException
 import br.com.rodrigogurgel.catalog.application.exception.StoreNotFoundException
 import br.com.rodrigogurgel.catalog.application.port.output.datastore.OfferDatastoreOutputPort
 import br.com.rodrigogurgel.catalog.application.port.output.datastore.StoreDatastoreOutputPort
+import br.com.rodrigogurgel.catalog.common.logger.extensions.CATEGORY_ID
 import br.com.rodrigogurgel.catalog.common.logger.extensions.CUSTOMIZATION_ID
 import br.com.rodrigogurgel.catalog.common.logger.extensions.OFFER_ID
 import br.com.rodrigogurgel.catalog.common.logger.extensions.OPTION
@@ -33,6 +34,7 @@ class RemoveOptionOnChildrenInputPort(
 
     override suspend fun execute(
         storeId: Id,
+        categoryId: Id,
         offerId: Id,
         customizationId: Id,
         optionId: Id
@@ -42,11 +44,12 @@ class RemoveOptionOnChildrenInputPort(
             .andThen { offerDatastoreOutputPort.findById(storeId, offerId) }
             .toErrorIfNull { OfferNotFoundException(storeId, offerId) }
             .andThen { removeOptionOnCustomization(it, customizationId, optionId) }
-            .andThen { offerDatastoreOutputPort.update(storeId, it) }
+            .andThen { offerDatastoreOutputPort.update(storeId, categoryId, it) }
             .onSuccess {
                 logger.success(
                     action(),
                     STORE_ID to storeId,
+                    CATEGORY_ID to categoryId,
                     OFFER_ID to offerId,
                     CUSTOMIZATION_ID to customizationId,
                     OPTION to optionId,
@@ -57,6 +60,7 @@ class RemoveOptionOnChildrenInputPort(
                     action(),
                     it,
                     STORE_ID to storeId,
+                    CATEGORY_ID to categoryId,
                     OFFER_ID to offerId,
                     CUSTOMIZATION_ID to customizationId,
                     OPTION to optionId,

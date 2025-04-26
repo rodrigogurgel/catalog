@@ -42,7 +42,7 @@ class CreateOfferInputPortTest {
 
         coEvery { storeDatastoreOutputPort.exists(storeId) } returns Ok(true)
         coEvery { categoryDatastoreOutputPort.exists(storeId, categoryId) } returns Ok(true)
-        coEvery { offerDatastoreOutputPort.exists(offer.id) } returns Ok(false)
+        coEvery { offerDatastoreOutputPort.exists(storeId, offer.id) } returns Ok(false)
         coEvery { offerDatastoreOutputPort.create(storeId, categoryId, offer) } returns Ok(Unit)
         coEvery {
             productDatastoreOutputPort.getIfNotExists(storeId, offer.getAllProducts().map { it.id })
@@ -55,7 +55,7 @@ class CreateOfferInputPortTest {
         coVerifySequence {
             storeDatastoreOutputPort.exists(storeId)
             categoryDatastoreOutputPort.exists(storeId, categoryId)
-            offerDatastoreOutputPort.exists(offer.id)
+            offerDatastoreOutputPort.exists(storeId, offer.id)
             productDatastoreOutputPort.getIfNotExists(storeId, offer.getAllProducts().map { it.id })
             offerDatastoreOutputPort.create(storeId, categoryId, offer)
         }
@@ -87,7 +87,7 @@ class CreateOfferInputPortTest {
 
         coEvery { storeDatastoreOutputPort.exists(storeId) } returns Ok(true)
         coEvery { categoryDatastoreOutputPort.exists(storeId, categoryId) } returns Ok(true)
-        coEvery { offerDatastoreOutputPort.exists(offer.id) } returns Ok(true)
+        coEvery { offerDatastoreOutputPort.exists(storeId, offer.id) } returns Ok(true)
 
         val result = createOfferInputPort.execute(storeId, categoryId, offer)
 
@@ -97,7 +97,7 @@ class CreateOfferInputPortTest {
         coVerifySequence {
             storeDatastoreOutputPort.exists(storeId)
             categoryDatastoreOutputPort.exists(storeId, categoryId)
-            offerDatastoreOutputPort.exists(offer.id)
+            offerDatastoreOutputPort.exists(storeId, offer.id)
         }
     }
 
@@ -129,7 +129,7 @@ class CreateOfferInputPortTest {
 
         coEvery { storeDatastoreOutputPort.exists(storeId) } returns Ok(true)
         coEvery { categoryDatastoreOutputPort.exists(storeId, categoryId) } returns Ok(true)
-        coEvery { offerDatastoreOutputPort.exists(offer.id) } returns Ok(false)
+        coEvery { offerDatastoreOutputPort.exists(storeId, offer.id) } returns Ok(false)
         coEvery { offerDatastoreOutputPort.create(storeId, categoryId, offer) } returns Ok(Unit)
         coEvery {
             productDatastoreOutputPort.getIfNotExists(
@@ -148,7 +148,7 @@ class CreateOfferInputPortTest {
         coVerifySequence {
             storeDatastoreOutputPort.exists(storeId)
             categoryDatastoreOutputPort.exists(storeId, categoryId)
-            offerDatastoreOutputPort.exists(offer.id)
+            offerDatastoreOutputPort.exists(storeId, offer.id)
             productDatastoreOutputPort.getIfNotExists(storeId, offer.getAllProducts().map { it.id })
         }
     }

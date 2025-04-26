@@ -7,6 +7,7 @@ import com.github.michaelbull.result.Result
 interface RemoveOptionOnChildrenUseCase : UseCase {
     suspend fun execute(
         storeId: Id,
+        categoryId: Id,
         offerId: Id,
         customizationId: Id,
         optionId: Id,

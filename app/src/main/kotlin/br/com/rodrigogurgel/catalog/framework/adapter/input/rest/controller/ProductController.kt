@@ -30,6 +30,8 @@ import com.github.michaelbull.result.mapCatching
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
+import kotlinx.coroutines.slf4j.MDCContext
+import kotlinx.coroutines.withContext
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
@@ -79,21 +81,20 @@ class ProductController(
         @RequestParam storeId: UUID,
         @RequestParam(defaultValue = "20", required = false) limit: Int,
         @RequestParam(required = false) cursor: String? = null,
-    ): ResponseEntity<ProductPageResponseDTO> = coroutineBinding {
-        val total = countProductsUseCase.execute(Id(storeId)).bind()
-        val nextCursorToProducts = getProductsUseCase.execute(Id(storeId), limit, cursor).bind()
+    ): ResponseEntity<ProductPageResponseDTO> = withContext(MDCContext()) {
+        coroutineBinding {
+            val total = countProductsUseCase.execute(Id(storeId)).bind()
+            val products = getProductsUseCase.execute(Id(storeId), limit, cursor).bind()
 
-        val nextCursor = nextCursorToProducts.first
-        val products = nextCursorToProducts.second.map { it.asResponse() }
-
-        ProductPageResponseDTO(limit, nextCursor, total, products)
-    }.mapBoth({
-        logger.responseProduced(STORE_ID to storeId, LIMIT to limit, CURSOR to cursor)
-        success(it)
-    }, {
-        logger.responseProduced(it, STORE_ID to storeId, LIMIT to limit, CURSOR to cursor)
-        failure(it)
-    })
+            ProductPageResponseDTO(limit, cursor, total, products.map { it.asResponse() })
+        }.mapBoth({
+            logger.responseProduced(STORE_ID to storeId, LIMIT to limit, CURSOR to cursor)
+            success(it)
+        }, {
+            logger.responseProduced(it, STORE_ID to storeId, LIMIT to limit, CURSOR to cursor)
+            failure(it)
+        })
+    }
 
     @Operation(
         summary = "Create a new product in the store",
@@ -116,18 +117,20 @@ class ProductController(
     suspend fun createProduct(
         @RequestParam storeId: UUID,
         @RequestBody productRequestDTO: ProductRequestDTO,
-    ): ResponseEntity<GenericResponseIdDTO> = runSuspendCatching {
-        productRequestDTO.asEntity()
-    }.andThen { product ->
-        createProductUseCase.execute(Id(storeId), product)
-            .map { GenericResponseIdDTO(product.id.value.toString()) }
-    }.mapBoth({
-        logger.responseProduced(STORE_ID to storeId, PRODUCT to it)
-        success(it, HttpStatus.CREATED)
-    }, {
-        logger.responseProduced(it, STORE_ID to storeId)
-        failure(it)
-    })
+    ): ResponseEntity<GenericResponseIdDTO> = withContext(MDCContext()) {
+        runSuspendCatching {
+            productRequestDTO.asEntity()
+        }.andThen { product ->
+            createProductUseCase.execute(Id(storeId), product)
+                .map { GenericResponseIdDTO(product.id.value.toString()) }
+        }.mapBoth({
+            logger.responseProduced(STORE_ID to storeId, PRODUCT to it)
+            success(it, HttpStatus.CREATED)
+        }, {
+            logger.responseProduced(it, STORE_ID to storeId)
+            failure(it)
+        })
+    }
 
     @Operation(
         summary = "Update an existing product in the store",
@@ -152,7 +155,7 @@ class ProductController(
         @RequestParam storeId: UUID,
         @PathVariable(value = "id") productId: UUID,
         @RequestBody productRequestDTO: ProductRequestDTO,
-    ): ResponseEntity<Unit> =
+    ): ResponseEntity<Unit> = withContext(MDCContext()) {
         runSuspendCatching { productRequestDTO.asEntity(productId) }
             .andThen { product ->
                 updateProductUseCase.execute(Id(storeId), product)
@@ -164,6 +167,7 @@ class ProductController(
                 logger.responseProduced(it, STORE_ID to storeId)
                 failure(it)
             })
+    }
 
     @Operation(
         summary = "Retrieve a specific product from the store",
@@ -186,15 +190,17 @@ class ProductController(
     suspend fun getProductById(
         @RequestParam storeId: UUID,
         @PathVariable productId: UUID,
-    ): ResponseEntity<ProductResponseDTO> = getProductUseCase.execute(Id(storeId), Id(productId))
-        .mapCatching { it.asResponse() }
-        .mapBoth({
-            logger.responseProduced(STORE_ID to storeId, PRODUCT to it)
-            success(it)
-        }, {
-            logger.responseProduced(it, STORE_ID to storeId)
-            failure(it)
-        })
+    ): ResponseEntity<ProductResponseDTO> = withContext(MDCContext()) {
+        getProductUseCase.execute(Id(storeId), Id(productId))
+            .mapCatching { it.asResponse() }
+            .mapBoth({
+                logger.responseProduced(STORE_ID to storeId, PRODUCT to it)
+                success(it)
+            }, {
+                logger.responseProduced(it, STORE_ID to storeId)
+                failure(it)
+            })
+    }
 
     @Operation(
         summary = "Delete a product from the store",
@@ -218,12 +224,14 @@ class ProductController(
     suspend fun deleteProductById(
         @RequestParam storeId: UUID,
         @PathVariable productId: UUID,
-    ): ResponseEntity<Unit> = deleteProductUseCase.execute(Id(storeId), Id(productId))
-        .mapBoth({
-            logger.responseProduced(STORE_ID to storeId, PRODUCT_ID to productId)
-            success(Unit, HttpStatus.NO_CONTENT)
-        }, {
-            logger.responseProduced(it, STORE_ID to storeId, PRODUCT_ID to productId)
-            failure(it)
-        })
+    ): ResponseEntity<Unit> = withContext(MDCContext()) {
+        deleteProductUseCase.execute(Id(storeId), Id(productId))
+            .mapBoth({
+                logger.responseProduced(STORE_ID to storeId, PRODUCT_ID to productId)
+                success(Unit, HttpStatus.NO_CONTENT)
+            }, {
+                logger.responseProduced(it, STORE_ID to storeId, PRODUCT_ID to productId)
+                failure(it)
+            })
+    }
 }

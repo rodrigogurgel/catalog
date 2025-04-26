@@ -7,5 +7,5 @@ import com.github.michaelbull.result.Result
 interface CountProductsUseCase : UseCase {
     suspend fun execute(
         storeId: Id
-    ): Result<Long, Throwable>
+    ): Result<Int, Throwable>
 }

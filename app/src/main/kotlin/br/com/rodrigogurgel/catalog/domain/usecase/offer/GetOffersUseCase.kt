@@ -10,6 +10,6 @@ interface GetOffersUseCase : UseCase {
         storeId: Id,
         categoryId: Id,
         limit: Int,
-        offset: Int,
+        cursor: String?
     ): Result<List<Offer>, Throwable>
 }

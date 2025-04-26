@@ -5,6 +5,7 @@ import br.com.rodrigogurgel.catalog.domain.exception.CustomizationNotFoundExcept
 import br.com.rodrigogurgel.catalog.domain.exception.DuplicatedCustomizationException
 import br.com.rodrigogurgel.catalog.domain.exception.DuplicatedOptionException
 import br.com.rodrigogurgel.catalog.domain.exception.OfferPriceZeroException
+import br.com.rodrigogurgel.catalog.domain.vo.Description
 import br.com.rodrigogurgel.catalog.domain.vo.Id
 import br.com.rodrigogurgel.catalog.domain.vo.Name
 import br.com.rodrigogurgel.catalog.domain.vo.Price
@@ -37,6 +38,7 @@ class OfferTest {
     fun `Should successfully instantiate an offer when price is greater than 0`() {
         val id = Id()
         val name = Name(randomString(30))
+        val description = Description(randomString(30))
         val product = mockProduct()
         val customizations =
             mutableListOf(
@@ -58,6 +60,7 @@ class OfferTest {
             Offer(
                 id,
                 name,
+                description,
                 product,
                 price,
                 status,
@@ -78,6 +81,7 @@ class OfferTest {
     fun `Should successfully instantiate an offer when price is greater than 0 without product`() {
         val id = Id()
         val name = Name(randomString(30))
+        val description = Description(randomString(30))
         val price = Price(BigDecimal.TEN)
         val status = AVAILABLE
 
@@ -85,6 +89,7 @@ class OfferTest {
             Offer(
                 id,
                 name,
+                description,
                 null,
                 price,
                 status,
@@ -104,6 +109,7 @@ class OfferTest {
     @Test
     fun `Should successfully update mutable values of an offer`() {
         val name = Name(randomString(30))
+        val description = Description(randomString(30))
         val product = mockProduct()
         val price = Price(20.toBigDecimal())
         val status = AVAILABLE
@@ -112,6 +118,7 @@ class OfferTest {
             Offer(
                 Id(),
                 name,
+                description,
                 product,
                 price,
                 status,
@@ -141,6 +148,7 @@ class OfferTest {
     @Test
     fun `Should fail to instantiate an offer when price is equal to 0`() {
         val id = Id()
+        val description = Description(randomString(30))
         val name = Name(randomString(30))
         val product = mockProduct()
 
@@ -150,6 +158,7 @@ class OfferTest {
             Offer(
                 id,
                 name,
+                description,
                 product,
                 Price.ZERO,
                 status,
@@ -172,7 +181,7 @@ class OfferTest {
             )
 
         shouldThrow<OfferPriceZeroException> {
-            Offer(id, name, product, Price.ZERO, status, customizations, mutableListOf())
+            Offer(id, name, description, product, Price.ZERO, status, customizations, mutableListOf())
         }
     }
 
@@ -593,7 +602,7 @@ class OfferTest {
         val offer = mockOffer()
         val other =
             offer.run {
-                Offer(id, name, product, price, status, customizations, mutableListOf())
+                Offer(id, name, description, product, price, status, customizations, mutableListOf())
             }
 
         offer shouldBeEqual offer
@@ -605,7 +614,7 @@ class OfferTest {
         val offer = mockOffer()
         val other =
             offer.run {
-                Offer(id, name, product, price, status, customizations, mutableListOf())
+                Offer(id, name, description, product, price, status, customizations, mutableListOf())
             }
 
         other shouldHaveSameHashCodeAs offer

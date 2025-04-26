@@ -8,6 +8,7 @@ import com.github.michaelbull.result.Result
 interface AddCustomizationOnChildrenUseCase : UseCase {
     suspend fun execute(
         storeId: Id,
+        categoryId: Id,
         offerId: Id,
         optionId: Id,
         customization: Customization,

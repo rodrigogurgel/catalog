@@ -137,7 +137,7 @@ complexity:
   LongParameterList:
     active: true
     functionThreshold: 6
-    constructorThreshold: 8
+    constructorThreshold: 9
     ignoreDefaultParameters: false
     ignoreDataClasses: true
     ignoreAnnotatedParameter: []
@@ -339,7 +339,7 @@ naming:
     active: true
     excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/androidUnitTest/**', '**/androidInstrumentedTest/**', '**/jsTest/**', '**/iosTest/**']
     functionPattern: '[a-z][a-zA-Z0-9]*'
-    excludeClassPattern: '$^'
+    excludeClassPattern: 'findBy.*|save.*|delete.*|update.*'
   FunctionParameterNaming:
     active: true
     parameterPattern: '[a-z][A-Za-z0-9]*'
@@ -795,6 +795,8 @@ style:
     active: true
   UtilityClassWithPublicConstructor:
     active: true
+    ignoreAnnotated:
+      - SpringBootTest
   VarCouldBeVal:
     active: true
     ignoreLateinitVar: false

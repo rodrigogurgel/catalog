@@ -10,6 +10,7 @@ import br.com.rodrigogurgel.catalog.common.logger.extensions.success
 import br.com.rodrigogurgel.catalog.common.opentelemetry.extensions.coroutines.suspendSpan
 import br.com.rodrigogurgel.catalog.domain.usecase.product.CountProductsUseCase
 import br.com.rodrigogurgel.catalog.domain.vo.Id
+import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.andThen
 import com.github.michaelbull.result.onFailure
 import com.github.michaelbull.result.onSuccess
@@ -22,7 +23,7 @@ class CountProductsInputPort(
 ) : CountProductsUseCase {
     private val logger = LoggerFactory.getLogger(this::class.java)
 
-    override suspend fun execute(storeId: Id) = suspendSpan(action()) {
+    override suspend fun execute(storeId: Id): Result<Int, Throwable> = suspendSpan(action()) {
         storeDatastoreOutputPort.exists(storeId)
             .toErrorIf({ !it }) { StoreNotFoundException(storeId) }
             .andThen { productDatastoreOutputPort.countProducts(storeId) }

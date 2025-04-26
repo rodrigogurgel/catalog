@@ -38,6 +38,7 @@ class UpdateCustomizationOnChildrenInputPortTest {
     @Test
     fun `Should successfully update a customization on children`() = runTest {
         val storeId = Id()
+        val categoryId = Id()
         val customization = mockCustomization()
         val newCustomization = mockCustomizationWith {
             id = customization.id
@@ -55,12 +56,18 @@ class UpdateCustomizationOnChildrenInputPortTest {
 
         coEvery { storeDatastoreOutputPort.exists(storeId) } returns Ok(true)
         coEvery { offerDatastoreOutputPort.findById(storeId, offer.id) } returns Ok(offer)
-        coEvery { offerDatastoreOutputPort.update(storeId, offer) } returns Ok(Unit)
+        coEvery { offerDatastoreOutputPort.update(storeId, categoryId, offer) } returns Ok(Unit)
         coEvery {
             productDatastoreOutputPort.getIfNotExists(storeId, match { ids -> ids.containsAll(offer.getAllProducts().map { product -> product.id }) })
         } returns Ok(emptyList())
 
-        val result = updateCustomizationOnChildrenInputPort.execute(storeId, offer.id, option.id, newCustomization)
+        val result = updateCustomizationOnChildrenInputPort.execute(
+            storeId,
+            categoryId,
+            offer.id,
+            option.id,
+            newCustomization
+        )
 
         result.isOk.shouldBeTrue()
 
@@ -71,13 +78,14 @@ class UpdateCustomizationOnChildrenInputPortTest {
                 storeId,
                 match { ids -> ids.containsAll(offer.getAllProducts().map { product -> product.id }) }
             )
-            offerDatastoreOutputPort.update(storeId, offer)
+            offerDatastoreOutputPort.update(storeId, categoryId, offer)
         }
     }
 
     @Test
     fun `Should fail to update a customization on children when the parent option does not exist`() = runTest {
         val storeId = Id()
+        val categoryId = Id()
         val customization = mockCustomization()
         val newCustomization = mockCustomizationWith {
             id = customization.id
@@ -90,7 +98,13 @@ class UpdateCustomizationOnChildrenInputPortTest {
         coEvery { storeDatastoreOutputPort.exists(storeId) } returns Ok(true)
         coEvery { offerDatastoreOutputPort.findById(storeId, offer.id) } returns Ok(offer)
 
-        val result = updateCustomizationOnChildrenInputPort.execute(storeId, offer.id, option.id, newCustomization)
+        val result = updateCustomizationOnChildrenInputPort.execute(
+            storeId,
+            categoryId,
+            offer.id,
+            option.id,
+            newCustomization
+        )
 
         result.isErr.shouldBeTrue()
         result.error shouldBe OptionNotFoundException(option.id)
@@ -104,6 +118,7 @@ class UpdateCustomizationOnChildrenInputPortTest {
     @Test
     fun `Should fail to update a customization on children when the store does not exist`() = runTest {
         val storeId = Id()
+        val categoryId = Id()
         val customization = mockCustomization()
         val newCustomization = mockCustomizationWith {
             id = customization.id
@@ -121,7 +136,13 @@ class UpdateCustomizationOnChildrenInputPortTest {
 
         coEvery { storeDatastoreOutputPort.exists(storeId) } returns Ok(false)
 
-        val result = updateCustomizationOnChildrenInputPort.execute(storeId, offer.id, option.id, newCustomization)
+        val result = updateCustomizationOnChildrenInputPort.execute(
+            storeId,
+            categoryId,
+            offer.id,
+            option.id,
+            newCustomization
+        )
 
         result.isErr.shouldBeTrue()
         result.error shouldBe StoreNotFoundException(storeId)
@@ -134,6 +155,7 @@ class UpdateCustomizationOnChildrenInputPortTest {
     @Test
     fun `Should fail to update a customization on children when the offer does not exist`() = runTest {
         val storeId = Id()
+        val categoryId = Id()
         val customization = mockCustomization()
         val newCustomization = mockCustomizationWith {
             id = customization.id
@@ -152,7 +174,13 @@ class UpdateCustomizationOnChildrenInputPortTest {
         coEvery { storeDatastoreOutputPort.exists(storeId) } returns Ok(true)
         coEvery { offerDatastoreOutputPort.findById(storeId, offer.id) } returns Ok(null)
 
-        val result = updateCustomizationOnChildrenInputPort.execute(storeId, offer.id, option.id, newCustomization)
+        val result = updateCustomizationOnChildrenInputPort.execute(
+            storeId,
+            categoryId,
+            offer.id,
+            option.id,
+            newCustomization
+        )
 
         result.isErr.shouldBeTrue()
         result.error shouldBe OfferNotFoundException(storeId, offer.id)
@@ -166,6 +194,7 @@ class UpdateCustomizationOnChildrenInputPortTest {
     @Test
     fun `Should fail to update a customization on children when the product does not exist`() = runTest {
         val storeId = Id()
+        val categoryId = Id()
         val customization = mockCustomization()
         val newCustomization = mockCustomizationWith {
             id = customization.id
@@ -187,7 +216,13 @@ class UpdateCustomizationOnChildrenInputPortTest {
             productDatastoreOutputPort.getIfNotExists(storeId, match { ids -> ids.containsAll(offer.getAllProducts().map { product -> product.id }) })
         } returns Ok(newCustomization.options.map { it.product!!.id })
 
-        val result = updateCustomizationOnChildrenInputPort.execute(storeId, offer.id, option.id, newCustomization)
+        val result = updateCustomizationOnChildrenInputPort.execute(
+            storeId,
+            categoryId,
+            offer.id,
+            option.id,
+            newCustomization
+        )
 
         result.isErr.shouldBeTrue()
         result.error shouldBe ProductsNotFoundException(newCustomization.options.map { it.product!!.id })

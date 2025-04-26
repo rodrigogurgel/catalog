@@ -10,7 +10,6 @@ import br.com.rodrigogurgel.catalog.domain.vo.Id
 import br.com.rodrigogurgel.catalog.fixture.mock.mockProduct
 import com.github.michaelbull.result.Ok
 import io.kotest.matchers.booleans.shouldBeTrue
-import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.coVerifySequence
@@ -34,13 +33,12 @@ class GetProductsInputPortTest {
         val cursor: String? = null
 
         coEvery { storeDatastoreOutputPort.exists(storeId) } returns Ok(true)
-        coEvery { productDatastoreOutputPort.getProducts(storeId, offset, cursor) } returns Ok(null to products)
+        coEvery { productDatastoreOutputPort.getProducts(storeId, offset, cursor) } returns Ok(products)
 
         val result = getProductsInputPort.execute(storeId, offset, cursor)
 
         result.isOk.shouldBeTrue()
-        result.value.first.shouldBeNull()
-        result.value.second shouldBe products
+        result.value shouldBe products
 
         coVerifySequence {
             storeDatastoreOutputPort.exists(storeId)
@@ -56,13 +54,13 @@ class GetProductsInputPortTest {
         val cursor: String? = null
 
         coEvery { storeDatastoreOutputPort.exists(storeId) } returns Ok(true)
-        coEvery { productDatastoreOutputPort.getProducts(storeId, offset, cursor) } returns Ok(null to products)
+        coEvery { productDatastoreOutputPort.getProducts(storeId, offset, cursor) } returns Ok(products)
 
         val result = getProductsInputPort.execute(storeId, offset, cursor)
 
         result.isOk.shouldBeTrue()
-        result.value.first.shouldBeNull()
-        result.value.second shouldBe products
+
+        result.value shouldBe products
 
         coVerifySequence {
             storeDatastoreOutputPort.exists(storeId)
@@ -80,13 +78,13 @@ class GetProductsInputPortTest {
         coEvery { storeDatastoreOutputPort.exists(storeId) } returns Ok(true)
         coEvery {
             productDatastoreOutputPort.getProducts(storeId, normalizeOffset(offset), cursor)
-        } returns Ok(null to products)
+        } returns Ok(products)
 
         val result = getProductsInputPort.execute(storeId, offset, cursor)
 
         result.isOk.shouldBeTrue()
-        result.value.first.shouldBeNull()
-        result.value.second shouldBe products
+
+        result.value shouldBe products
 
         coVerifySequence {
             storeDatastoreOutputPort.exists(storeId)
@@ -104,13 +102,12 @@ class GetProductsInputPortTest {
         coEvery { storeDatastoreOutputPort.exists(storeId) } returns Ok(true)
         coEvery {
             productDatastoreOutputPort.getProducts(storeId, normalizeLimit(offset), cursor)
-        } returns Ok(cursor to products)
+        } returns Ok(products)
 
         val result = getProductsInputPort.execute(storeId, offset, cursor)
 
         result.isOk.shouldBeTrue()
-        result.value.first shouldBe cursor
-        result.value.second shouldBe products
+        result.value shouldBe products
 
         coVerifySequence {
             storeDatastoreOutputPort.exists(storeId)

@@ -237,8 +237,8 @@ class ProductControllerTest {
             mockProduct()
         }.sortedBy { body -> body.name.value }
 
-        coEvery { countProductsUseCase.execute(Id(storeId)) } returns Ok(products.size.toLong())
-        coEvery { getProductsUseCase.execute(Id(storeId), 20, null) } returns Ok(null to products)
+        coEvery { countProductsUseCase.execute(Id(storeId)) } returns Ok(products.size)
+        coEvery { getProductsUseCase.execute(Id(storeId), 20, null) } returns Ok(products)
 
         // when
         mockMvc.get("/products") {

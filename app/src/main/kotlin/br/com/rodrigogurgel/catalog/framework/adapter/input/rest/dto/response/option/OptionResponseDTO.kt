@@ -9,6 +9,7 @@ import java.math.BigDecimal
 data class OptionResponseDTO(
     val id: String,
     val name: String,
+    val description: String?,
     val product: ProductResponseDTO?,
     val minPermitted: Int,
     val maxPermitted: Int,

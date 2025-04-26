@@ -7,6 +7,7 @@ import com.github.michaelbull.result.Result
 interface RemoveCustomizationUseCase : UseCase {
     suspend fun execute(
         storeId: Id,
+        categoryId: Id,
         offerId: Id,
         customizationId: Id,
     ): Result<Unit, Throwable>

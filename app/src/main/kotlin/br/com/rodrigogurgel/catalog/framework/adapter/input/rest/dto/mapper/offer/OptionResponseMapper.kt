@@ -11,6 +11,7 @@ object OptionResponseMapper {
         return OptionResponseDTO(
             id = id.value.toString(),
             name = name.value,
+            description = description?.value,
             product = product?.asResponse(),
             price = price.value,
             status = status,

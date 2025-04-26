@@ -1,5 +1,6 @@
 import kotlinx.kover.gradle.plugin.dsl.CoverageUnit
 import kotlinx.kover.gradle.plugin.dsl.GroupingEntityType
+import java.net.URL
 
 plugins {
     kotlin("jvm") version "2.0.21"
@@ -37,6 +38,7 @@ val logstashVersion = "8.0"
 val kotlinResultVersion = "2.0.1"
 val springDocVersion = "2.8.5"
 val amazonSDKVersion = "2.31.23"
+val kotlinxCoroutinesSlf4jMDCVersion = "1.10.2"
 
 dependencies {
     // Kotlin
@@ -57,12 +59,16 @@ dependencies {
 
     // Misc
     implementation("org.apache.commons:commons-lang3:$apacheCommonsVersion")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-slf4j:$kotlinxCoroutinesSlf4jMDCVersion")
 
     // Spring
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-aop")
     implementation("org.springframework.boot:spring-boot-starter-web")
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
+
+    // Mongo DB
+    implementation("org.springframework.boot:spring-boot-starter-data-mongodb")
 
     // Swagger
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:$springDocVersion")
@@ -77,9 +83,6 @@ dependencies {
     // Kotlin Result
     implementation("com.michael-bull.kotlin-result:kotlin-result:$kotlinResultVersion")
     implementation("com.michael-bull.kotlin-result:kotlin-result-coroutines:$kotlinResultVersion")
-
-    // DynamoDB
-    implementation("software.amazon.awssdk:dynamodb-enhanced")
 
     // Detekt
     detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:$detektVersion")
@@ -103,7 +106,7 @@ dependencies {
 
     // Test Containers
     testImplementation("org.testcontainers:junit-jupiter")
-    testImplementation("org.testcontainers:localstack")
+    testImplementation("org.testcontainers:mongodb")
 
     // Kotest Test
     testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
@@ -112,6 +115,9 @@ dependencies {
 
     // Kotlinx Coroutines Test
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test")
+
+    // MongoDB Test
+    testImplementation("de.flapdoodle.embed:de.flapdoodle.embed.mongo:4.20.0")
 }
 
 dependencyManagement {
@@ -145,7 +151,8 @@ kover {
                     "br.com.rodrigogurgel.catalog.framework.adapter.input.rest.extensions.*",
                     "br.com.rodrigogurgel.catalog.framework.adapter.input.rest.extensions.*",
                     "br.com.rodrigogurgel.catalog.framework.config.*",
-                    "br.com.rodrigogurgel.catalog.framework.adapter.input.rest.requestservelet.*"
+                    "br.com.rodrigogurgel.catalog.framework.adapter.input.rest.requestservelet.*",
+                    "br.com.rodrigogurgel.catalog.framework.adapter.output.datastore.utils.*"
                 )
             }
         }
@@ -180,6 +187,33 @@ kover {
     }
 }
 
+tasks.register("downloadOtelAgent") {
+    group = "otel"
+    description = "Baixa o OpenTelemetry Java Agent mais recente"
+
+    val outputDir = layout.buildDirectory.dir("otel")
+    val outputFile = outputDir.map { it.file("opentelemetry-javaagent.jar") }
+
+    outputs.file(outputFile)
+
+    doLast {
+        val url =
+            URL("https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/latest/download/opentelemetry-javaagent.jar")
+
+        val targetFile = outputFile.get().asFile
+        targetFile.parentFile.mkdirs()
+
+        println("📥 Baixando o agente para: ${targetFile.absolutePath}")
+        url.openStream().use { input ->
+            targetFile.outputStream().use { output ->
+                input.copyTo(output)
+            }
+        }
+
+        println("✅ Download completo.")
+    }
+}
+
 tasks.check {
     dependsOn(tasks.detekt)
 }
@@ -191,5 +225,6 @@ kotlin {
 }
 
 tasks.withType<Test> {
+    jvmArgs("--add-opens", "java.base/java.lang.reflect=ALL-UNNAMED")
     useJUnitPlatform()
 }

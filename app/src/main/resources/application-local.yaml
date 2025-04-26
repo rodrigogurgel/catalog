@@ -1,6 +1,4 @@
-aws:
-  dynamodb:
-    access-key-id: noop
-    endpoint: http://localhost:8000
-    region: sa-east-1
-    secret-access-key: noop
+spring:
+  data:
+    mongodb:
+      uri: mongodb://root:password@localhost:27017/catalog?authSource=admin

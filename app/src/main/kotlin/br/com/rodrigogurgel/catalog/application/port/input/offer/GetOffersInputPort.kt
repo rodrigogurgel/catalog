@@ -6,7 +6,6 @@ import br.com.rodrigogurgel.catalog.application.port.output.datastore.CategoryDa
 import br.com.rodrigogurgel.catalog.application.port.output.datastore.OfferDatastoreOutputPort
 import br.com.rodrigogurgel.catalog.application.port.output.datastore.StoreDatastoreOutputPort
 import br.com.rodrigogurgel.catalog.application.utils.normalizeLimit
-import br.com.rodrigogurgel.catalog.application.utils.normalizeOffset
 import br.com.rodrigogurgel.catalog.common.logger.extensions.CATEGORY_ID
 import br.com.rodrigogurgel.catalog.common.logger.extensions.CURSOR
 import br.com.rodrigogurgel.catalog.common.logger.extensions.LIMIT
@@ -34,7 +33,7 @@ class GetOffersInputPort(
         storeId: Id,
         categoryId: Id,
         limit: Int,
-        offset: Int
+        cursor: String?
     ) = suspendSpan(action()) {
         storeDatastoreOutputPort.exists(storeId)
             .toErrorIf({ !it }) { StoreNotFoundException(storeId) }
@@ -45,7 +44,7 @@ class GetOffersInputPort(
                     storeId,
                     categoryId,
                     normalizeLimit(limit),
-                    normalizeOffset(offset),
+                    cursor,
                 )
             }.onSuccess {
                 logger.success(
@@ -53,7 +52,7 @@ class GetOffersInputPort(
                     STORE_ID to storeId,
                     CATEGORY_ID to categoryId,
                     LIMIT to limit,
-                    CURSOR to offset,
+                    CURSOR to cursor,
                     RESULT to it,
                 )
             }
@@ -64,7 +63,7 @@ class GetOffersInputPort(
                     STORE_ID to storeId,
                     CATEGORY_ID to categoryId,
                     LIMIT to limit,
-                    CURSOR to offset,
+                    CURSOR to cursor,
                 )
             }
     }

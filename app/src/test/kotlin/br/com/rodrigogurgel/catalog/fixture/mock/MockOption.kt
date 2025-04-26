@@ -3,6 +3,7 @@ package br.com.rodrigogurgel.catalog.fixture.mock
 import br.com.rodrigogurgel.catalog.domain.entity.Customization
 import br.com.rodrigogurgel.catalog.domain.entity.Option
 import br.com.rodrigogurgel.catalog.domain.entity.Product
+import br.com.rodrigogurgel.catalog.domain.vo.Description
 import br.com.rodrigogurgel.catalog.domain.vo.Id
 import br.com.rodrigogurgel.catalog.domain.vo.Media
 import br.com.rodrigogurgel.catalog.domain.vo.Name
@@ -17,6 +18,7 @@ import kotlin.random.Random
 data class MockOption(
     var id: Id = Id(),
     var name: Name = Name(randomString(30)),
+    var description: Description = Description(randomString(100)),
     var product: Product = mockProduct(),
     var price: Price = Price(BigDecimal.valueOf(Random.nextDouble(0.0, 100.0))),
     var quantity: Quantity = Quantity(0, 1),
@@ -29,9 +31,9 @@ data class MockOption(
 
 fun mockOption() =
     MockOption()
-        .run { Option(Id(), name, product, quantity, status, price, customizations, medias) }
+        .run { Option(Id(), name, description, product, quantity, status, price, customizations, medias) }
 
 fun mockOptionWith(block: MockOption.() -> Unit): Option =
     MockOption()
         .apply(block)
-        .run { Option(id, name, product, quantity, status, price, customizations, medias) }
+        .run { Option(id, name, description, product, quantity, status, price, customizations, medias) }

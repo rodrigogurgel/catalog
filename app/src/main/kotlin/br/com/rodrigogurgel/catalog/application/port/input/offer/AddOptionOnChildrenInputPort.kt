@@ -6,6 +6,7 @@ import br.com.rodrigogurgel.catalog.application.exception.StoreNotFoundException
 import br.com.rodrigogurgel.catalog.application.port.output.datastore.OfferDatastoreOutputPort
 import br.com.rodrigogurgel.catalog.application.port.output.datastore.ProductDatastoreOutputPort
 import br.com.rodrigogurgel.catalog.application.port.output.datastore.StoreDatastoreOutputPort
+import br.com.rodrigogurgel.catalog.common.logger.extensions.CATEGORY_ID
 import br.com.rodrigogurgel.catalog.common.logger.extensions.CUSTOMIZATION_ID
 import br.com.rodrigogurgel.catalog.common.logger.extensions.OFFER_ID
 import br.com.rodrigogurgel.catalog.common.logger.extensions.OPTION
@@ -37,6 +38,7 @@ class AddOptionOnChildrenInputPort(
 
     override suspend fun execute(
         storeId: Id,
+        categoryId: Id,
         offerId: Id,
         customizationId: Id,
         option: Option
@@ -46,11 +48,12 @@ class AddOptionOnChildrenInputPort(
             .andThen { offerDatastoreOutputPort.findById(storeId, offerId) }
             .toErrorIfNull { OfferNotFoundException(storeId, offerId) }
             .andThen { addOptionOnCustomization(storeId, it, customizationId, option) }
-            .andThen { offerDatastoreOutputPort.update(storeId, it) }
+            .andThen { offerDatastoreOutputPort.update(storeId, categoryId, it) }
             .onSuccess {
                 logger.success(
                     action(),
                     STORE_ID to storeId,
+                    CATEGORY_ID to categoryId,
                     OFFER_ID to offerId,
                     CUSTOMIZATION_ID to customizationId,
                     OPTION to option,
@@ -61,6 +64,7 @@ class AddOptionOnChildrenInputPort(
                     action(),
                     it,
                     STORE_ID to storeId,
+                    CATEGORY_ID to categoryId,
                     OFFER_ID to offerId,
                     CUSTOMIZATION_ID to customizationId,
                     OPTION to option,
