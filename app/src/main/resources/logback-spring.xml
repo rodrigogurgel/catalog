@@ -45,7 +45,7 @@
             <appender-ref ref="${LoggingStyle:-CONSOLE}"/>
         </root>
 
-        <logger name="br.com.letcodeit" additivity="false">
+        <logger name="br.com.rodrigogurgel" additivity="false">
             <appender-ref ref="${LoggingStyle:-CONSOLE}"/>
         </logger>
     </springProfile>
@@ -149,7 +149,7 @@
             <appender-ref ref="ASYNC_FILESTASH"/>
         </root>
 
-        <logger name="br.com.letcodeit" level="${logging.level.br.com.letcodeit}" additivity="false">
+        <logger name="br.com.rodrigogurgel" level="${logging.level.br.com.rodrigogurgel}" additivity="false">
             <appender-ref ref="ASYNC_STASH"/>
             <appender-ref ref="ASYNC_FILESTASH"/>
         </logger>
